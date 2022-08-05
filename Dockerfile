@@ -1,4 +1,3 @@
-# FROM alpine:latest
 FROM ubuntu:latest
 
 ARG DEBIAN_FRONTEND=noninteractive
@@ -49,7 +48,11 @@ RUN \
     cd ./plugin/ && \
     git clone https://github.com/asu-idi/rocksdb-hdfs hdfs && \
     cd .. && \
-    make clean && DEBUG_LEVEL=0 ROCKSDB_PLUGINS="hdfs" make -j12 db_bench install
+    make clean && DEBUG_LEVEL=0 ROCKSDB_PLUGINS="hdfs" make install && \
+    cp make_config.mk .. && \
+    rm -r /home/rocksdb/
+
+WORKDIR /home
 
 EXPOSE 9000
 EXPOSE 36728
