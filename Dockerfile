@@ -1,7 +1,7 @@
+# FROM alpine:latest
 FROM ubuntu:latest
 
 ARG DEBIAN_FRONTEND=noninteractive
-COPY src/.rockshdfs_commons /home/.rockshdfs_commons
 
 RUN apt-get update && apt-get -y upgrade && apt-get install -y wget git build-essential
 
@@ -52,7 +52,11 @@ RUN \
     cp make_config.mk .. && \
     rm -r /home/rocksdb/
 
-WORKDIR /home
-
 EXPOSE 9000
 EXPOSE 36728
+
+WORKDIR /home
+
+COPY src/.rockshdfs_commons /home/.rockshdfs_commons
+COPY src/Makefile /home/Makefile
+COPY src/server.cc /home/server.cc

@@ -7,3 +7,7 @@ export CLASSPATH=`$HADOOP_HOME/bin/hadoop classpath --glob`
 for f in `find $HADOOP_HOME/share/hadoop/hdfs | grep jar`; do export CLASSPATH=$CLASSPATH:$f; done
 for f in `find $HADOOP_HOME/share/hadoop | grep jar`; do export CLASSPATH=$CLASSPATH:$f; done
 for f in `find $HADOOP_HOME/share/hadoop/client | grep jar`; do export CLASSPATH=$CLASSPATH:$f; done
+
+cd /home
+make server
+./server
