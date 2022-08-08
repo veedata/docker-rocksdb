@@ -1,3 +1,7 @@
+// Primary db is only meant to deal with put, delete and update. 
+// In case of any other request, the data needs to go to secondary db
+
+
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,15 +29,15 @@ using ROCKSDB_NAMESPACE::Status;
 using ROCKSDB_NAMESPACE::WriteOptions;
 
 const std::string hdfsEnv = "hdfs://172.17.0.5:9000/";
-const std::string kDBPrimaryPath = "vee/ported/prim";
-const std::string kDBSecondaryPath = "vee/ported/sec";
+const std::string kDBPrimaryPath = "primary";
+// const std::string kDBSecondaryPath = "vee/ported/sec";
 
 DB *db = nullptr;
 
-#define PORT 36728
+#define PORT 36728      // Primary DB port
+// #define PORT 34728   // Secondary DB port
 
 char buffer[1024] = {0};
-// std::string buffer;
 int server_fd, new_socket;
 struct sockaddr_in address;
 int addrlen = sizeof(address);
@@ -78,44 +82,40 @@ int startServer() {
     return 0;
 }
 
-int sendToRocksDB() {
-
-    // std::cout << buffer << std::endl;
-
+int sendToRocksDB()
+{
     wordexp_t p;
     char **w;
 
     wordexp(buffer, &p, 0);
     w = p.we_wordv;
 
-    // int i = 0;
-
-    // for (i = 0; i < p.we_wordc; i++)
-    //     printf("%i: %s\n", i, w[i]);
-
-
     // numberOfArgs -> p.we_wordc
     // arrayOfArgs --> w
+    // currently implemented: get, put, scan, delete, update
+    if ((strcmp(w[0], "put") == 0) || (strcmp(w[0], "update") == 0)) {
+        Status s;
+        if (p.we_wordc >= 4) 
+            s = db->Put(WriteOptions(), w[1], w[2], w[3]);
+        else
+            s = db->Put(WriteOptions(), w[1], w[2]);
 
-    // for now only impementing get and put, will expand in the future
-    if ( strcmp(w[1], "put") == 0 ) {
-        Status s = db->Put(WriteOptions(), "game0", "apex");
-        assert(s.ok());
+        if (s.ok())
+            std::cout << "Inserted key-value pair" << std::endl;
+        else
+            std::cout << "Error in inserting key and value" << w[1] << w[2] << std::endl; 
     }
-    else if ( strcmp(w[1], "get") == 0 ) {
-        std::string value;
-        Status s2 = db->Get(rocksdb::ReadOptions(), "game0", &value);
-        assert(s2.ok());
+    else if (strcmp(w[0], "delete") == 0) {
+        Status del = db->SingleDelete(rocksdb::WriteOptions(), w[1]);
 
-        std::cout << value << std::endl;
+        if (del.ok())
+            std::cout << "Deleted key " << w[1] << std::endl;
+        else
+            std::cout << "Error in deleting key " << w[1] << std::endl;
     }
     else {
-        std::cout << "NOTA" << std::endl;
+        std::cout << "Input error, ignoring input" << std::endl;
     }
-
-    // // Future idea!!!
-    // ROCKSDB_NAMESPACE::LDBTool tool;
-    // tool.Run(i, w);
 
     wordfree(&p);
 
@@ -183,8 +183,8 @@ int main() {
     startServer();
     CreateDB();
 
-    // Read from connection
     while(true) {
+        // Read from connection
         buffer[0] = '\0';
         readData();
     }
