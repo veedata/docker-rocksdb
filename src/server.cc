@@ -24,7 +24,7 @@ using ROCKSDB_NAMESPACE::ReadOptions;
 using ROCKSDB_NAMESPACE::Status;
 using ROCKSDB_NAMESPACE::WriteOptions;
 
-const std::string hdfsEnv = "hdfs://172.17.0.2:9000/";
+const std::string hdfsEnv = "hdfs://172.17.0.5:9000/";
 const std::string kDBPrimaryPath = "vee/ported/prim";
 const std::string kDBSecondaryPath = "vee/ported/sec";
 
