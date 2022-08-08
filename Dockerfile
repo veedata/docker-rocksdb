@@ -48,7 +48,7 @@ RUN \
     cd ./plugin/ && \
     git clone https://github.com/asu-idi/rocksdb-hdfs hdfs && \
     cd .. && \
-    make clean && DEBUG_LEVEL=0 ROCKSDB_PLUGINS="hdfs" make install && \
+    make clean && DEBUG_LEVEL=0 ROCKSDB_PLUGINS="hdfs" make -j$(nproc) install && \
     cp make_config.mk .. && \
     rm -r /home/rocksdb/
 
