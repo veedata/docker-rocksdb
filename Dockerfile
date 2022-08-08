@@ -52,11 +52,16 @@ RUN \
     cp make_config.mk .. && \
     rm -r /home/rocksdb/
 
-EXPOSE 9000
+EXPOSE 9090
 EXPOSE 36728
 
 WORKDIR /home
 
-COPY src/.rockshdfs_commons /home/.rockshdfs_commons
+COPY src/startup.sh /home/startup.sh
 COPY src/Makefile /home/Makefile
 COPY src/server.cc /home/server.cc
+
+RUN \
+    chmod +x /home/startup.sh
+
+CMD /bin/bash -c '/home/startup.sh'
