@@ -53,7 +53,7 @@ RUN \
     rm -r /home/rocksdb/
 
 EXPOSE 9090
-EXPOSE 36728
+EXPOSE 34728
 
 WORKDIR /home
 
