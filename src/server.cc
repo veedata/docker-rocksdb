@@ -31,7 +31,7 @@ using ROCKSDB_NAMESPACE::WriteOptions;
 
 const std::string hdfsEnv = "hdfs://172.17.0.5:9000/";
 const std::string kDBPrimaryPath = "primary";
-const std::string kDBSecondaryPath = "secondary/";
+std::string kDBSecondaryPath = "secondary/";
 
 
 // #define PORT 36728      // Primary DB port
