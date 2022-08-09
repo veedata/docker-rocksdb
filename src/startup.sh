@@ -10,4 +10,4 @@ for f in `find $HADOOP_HOME/share/hadoop/client | grep jar`; do export CLASSPATH
 
 cd /home
 make server
-./server
+./server 

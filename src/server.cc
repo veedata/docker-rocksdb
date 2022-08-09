@@ -1,3 +1,7 @@
+// Secondary db is only meant to deal with get and scan. 
+// In case of any other request, the data needs to go to primary db
+
+
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,24 +29,21 @@ using ROCKSDB_NAMESPACE::Status;
 using ROCKSDB_NAMESPACE::WriteOptions;
 
 const std::string hdfsEnv = "hdfs://172.17.0.5:9000/";
-const std::string kDBPrimaryPath = "vee/ported/prim";
-const std::string kDBSecondaryPath = "vee/ported/sec";
+// const std::string kDBPrimaryPath = "primary";
+std::string kDBSecondaryPath = "secondary/";
 
 DB *db = nullptr;
 
-#define PORT 36728
+// #define PORT 36728   // Primary DB port
+#define PORT 34728      // Secondary DB port
 
 char buffer[1024] = {0};
-// std::string buffer;
 int server_fd, new_socket;
 struct sockaddr_in address;
 int addrlen = sizeof(address);
 
 
 int startServer() {
-    int opt = 1;
-    // char *hello = "Hello from server";
-
     // Creating socket file descriptor
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd == 0) {
@@ -79,49 +80,47 @@ int startServer() {
 }
 
 int sendToRocksDB() {
-
-    // std::cout << buffer << std::endl;
-
     wordexp_t p;
     char **w;
 
     wordexp(buffer, &p, 0);
     w = p.we_wordv;
 
-    // int i = 0;
-
-    // for (i = 0; i < p.we_wordc; i++)
-    //     printf("%i: %s\n", i, w[i]);
-
+    // To be replaced by a way more complex call in the future.
+    // Note: Replacement will probably come in the readData() function
+    Status s = db->TryCatchUpWithPrimary();
 
     // numberOfArgs -> p.we_wordc
     // arrayOfArgs --> w
-
-    // for now only impementing get and put, will expand in the future
-    if ( strcmp(w[1], "put") == 0 ) {
-        Status s = db->Put(WriteOptions(), "game0", "apex");
-        assert(s.ok());
-    }
-    else if ( strcmp(w[1], "get") == 0 ) {
+    // currently implemented: get, scan
+    if (strcmp(w[0], "get") == 0) {
         std::string value;
-        Status s2 = db->Get(rocksdb::ReadOptions(), "game0", &value);
-        assert(s2.ok());
+        Status s2 = db->Get(rocksdb::ReadOptions(), w[1], &value);
+        
+        if (s2.ok())
+            std::cout << value << std::endl;
+        else
+            std::cout << "Error in locating value for key " << w[1] << std::endl;
+    }
+    else if (strcmp(w[0], "scan") == 0) {
+        rocksdb::Iterator *it = db->NewIterator(ReadOptions());
+		int count = 0;
 
-        std::cout << value << std::endl;
+		for (it->SeekToFirst(); it->Valid(); it->Next()) {
+			count++;
+            std::cout << it->key().ToString() << std::endl;
+		}
+		
+		fprintf(stdout, "Observed %i keys\n", count); 
     }
     else {
-        std::cout << "NOTA" << std::endl;
+        std::cout << "Input error, ignoring input" << std::endl;
     }
-
-    // // Future idea!!!
-    // ROCKSDB_NAMESPACE::LDBTool tool;
-    // tool.Run(i, w);
 
     wordfree(&p);
 
     return 0;
 }
-
 
 int readData() {
     int valread;
@@ -146,7 +145,22 @@ int stopServer() {
     return 0;
 }
 
+void getSecondaryDBAddr() {
+    std::string host = "";
+    char hostname[HOST_NAME_MAX] = {0};
+    gethostname(hostname, HOST_NAME_MAX);
+    
+    for (char ch: hostname)
+        host += ch;
+
+    kDBSecondaryPath += host;
+
+    return 0;
+}
+
 void CreateDB() {
+    getSecondaryDBAddr();
+
 	long my_pid = static_cast<long>(getpid());
 	
 	std::unique_ptr<rocksdb::Env> hdfs;
@@ -155,9 +169,9 @@ void CreateDB() {
 
 	Options options;
 	options.env = hdfs.get();
-	options.create_if_missing = true;
+    options.max_open_files = -1;
 
-	s = DB::Open(options, kDBPrimaryPath, &db);
+    s = DB::OpenAsSecondary(options, kDBPrimaryPath, kDBSecondaryPath, &db);
 	if (!s.ok()) { fprintf(stderr, "[process %ld] Failed to open DB: %s\n", my_pid, s.ToString().c_str()); assert(false); }
     else { fprintf(stderr, "[process %ld] DB Open: %s\n", my_pid, s.ToString().c_str()); assert(true); }
 }
@@ -171,11 +185,10 @@ void RemoveDB() {
 
     Options options;
 	options.env = hdfs.get();
-	options.create_if_missing = true;
-
+    options.max_open_files = -1;
+	
     s = DestroyDB(kDBPrimaryPath, options);
 }
-
 
 int main() {
 
@@ -183,8 +196,8 @@ int main() {
     startServer();
     CreateDB();
 
-    // Read from connection
     while(true) {
+        // Read from connection
         buffer[0] = '\0';
         readData();
     }

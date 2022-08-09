@@ -6,14 +6,16 @@ name: Docker build and push
 # documentation.
 
 on:
-  release:
-    types: [created]
+  push:
+    branches:
+      - primary-db
+      - secondary-db
 
 env:
   # Use docker.io for Docker Hub if empty
   REGISTRY: docker.io
   # github.repository as <account>/<repo>
-  IMAGE_NAME: veedata/rocksdb-hdfs
+  IMAGE_NAME: veedata/rocksdb-hdfs-secondarydb
 
 
 jobs:
@@ -63,7 +65,7 @@ jobs:
         with:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: latest
           labels: ${{ steps.meta.outputs.labels }}
 
       # Update the one-line description and README on dockerhub
