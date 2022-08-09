@@ -33,7 +33,6 @@ const std::string hdfsEnv = "hdfs://172.17.0.5:9000/";
 const std::string kDBPrimaryPath = "primary";
 // const std::string kDBSecondaryPath = "vee/ported/sec";
 
-DB *db = nullptr;
 
 #define PORT 36728      // Primary DB port
 // #define PORT 34728   // Secondary DB port
