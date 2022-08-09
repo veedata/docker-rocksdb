@@ -29,7 +29,7 @@ using ROCKSDB_NAMESPACE::Status;
 using ROCKSDB_NAMESPACE::WriteOptions;
 
 const std::string hdfsEnv = "hdfs://172.17.0.5:9000/";
-// const std::string kDBPrimaryPath = "primary";
+const std::string kDBPrimaryPath = "primary";
 std::string kDBSecondaryPath = "secondary/";
 
 DB *db = nullptr;
@@ -44,6 +44,8 @@ int addrlen = sizeof(address);
 
 
 int startServer() {
+    int opt = 1;
+
     // Creating socket file descriptor
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd == 0) {
@@ -154,8 +156,6 @@ void getSecondaryDBAddr() {
         host += ch;
 
     kDBSecondaryPath += host;
-
-    return 0;
 }
 
 void CreateDB() {
