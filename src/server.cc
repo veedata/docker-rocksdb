@@ -30,17 +30,19 @@ using ROCKSDB_NAMESPACE::WriteOptions;
 
 
 const std::string hdfsEnv = "hdfs://172.17.0.5:9000/";
+const std::string primaryDBIP = "10.105.35.215";
 const std::string kDBPrimaryPath = "primary";
 std::string kDBSecondaryPath = "secondary/";
 
 
-// #define PORT 36728      // Primary DB port
-#define PORT 34728         // Secondary DB port
+#define PRIMARYDB_PORT 36728      // Primary DB port
+#define PORT 34728                // Secondary DB port
 
 DB *db = nullptr;
 char buffer[1024] = {0};
 int new_socket, master_socket, addrlen, client_socket[10], max_clients = 10, activity, i, valread, sd, max_sd;
 struct sockaddr_in address;
+int primarydb_sock = 0;
 // int addrlen = sizeof(address);
 //set of socket descriptors 
 fd_set readfds;
@@ -87,6 +89,40 @@ int startServer() {
     return 0;
 }
 
+void connectToPrimaryDB() {
+
+    struct sockaddr_in primarydb_address;
+    struct sockaddr_in primarydb_serv_addr;
+
+    if ((primarydb_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        printf("Socket creation error");
+        return -1;
+    }
+
+    memset(&primarydb_serv_addr, '0', sizeof(primarydb_serv_addr));
+
+    primarydb_serv_addr.sin_family = AF_INET;
+    primarydb_serv_addr.sin_port = htons(PRIMARYDB_PORT);
+
+    // Convert IPv4 and IPv6 addresses from text to binary form
+    if (inet_pton(AF_INET, primaryDBIP, &primarydb_serv_addr.sin_addr) <= 0) {
+        printf("Invalid address/ Address not supported"); 
+        return -1;
+    }
+
+    if (connect(primarydb_sock, (struct sockaddr *)&primarydb_serv_addr, sizeof(primarydb_serv_addr)) < 0) {
+        printf("Connection Failed"); 
+        return -1;
+    }
+
+    return 0;
+}
+
+void sendToPrimaryDB() {
+    // Client code here
+    send(primarydb_sock, buffer.c_str(), buffer.length(), 0);
+}
+
 int sendToRocksDB() {
     wordexp_t p;
     char **w;
@@ -120,6 +156,10 @@ int sendToRocksDB() {
 		}
 		
 		fprintf(stdout, "Observed %i keys\n", count); 
+    }
+    else if ((strcmp(w[0], "put") == 0) || (strcmp(w[0], "update") == 0) || (strcmp(w[0], "delete") == 0)) {
+        std::cout << "Sending to PrimaryDB" << std::endl;
+        sendToPrimaryDB();
     }
     else {
         std::cout << "Input error, ignoring input" << std::endl;
@@ -293,6 +333,7 @@ int main()
 
     // Init steps
     startServer();
+    connectToPrimaryDB();
     CreateDB();
 
     // Read from connection
