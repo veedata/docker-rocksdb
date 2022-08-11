@@ -32,7 +32,6 @@ using ROCKSDB_NAMESPACE::WriteOptions;
 
 
 const std::string hdfsEnv = "hdfs://172.17.0.5:9000/";
-const std::string primaryDBIP = "10.105.35.215";
 const std::string kDBPrimaryPath = "primary";
 std::string kDBSecondaryPath = "secondary/";
 
@@ -91,7 +90,7 @@ int startServer() {
     return 0;
 }
 
-void connectToPrimaryDB() {
+int connectToPrimaryDB() {
 
     struct sockaddr_in primarydb_address;
     struct sockaddr_in primarydb_serv_addr;
@@ -107,7 +106,7 @@ void connectToPrimaryDB() {
     primarydb_serv_addr.sin_port = htons(PRIMARYDB_PORT);
 
     // Convert IPv4 and IPv6 addresses from text to binary form
-    if (inet_pton(AF_INET, primaryDBIP, &primarydb_serv_addr.sin_addr) <= 0) {
+    if (inet_pton(AF_INET, "10.105.35.215", &primarydb_serv_addr.sin_addr) <= 0) {
         printf("Invalid address/ Address not supported"); 
         return -1;
     }
@@ -122,7 +121,7 @@ void connectToPrimaryDB() {
 
 void sendToPrimaryDB() {
     // Client code here
-    send(primarydb_sock, buffer.c_str(), buffer.length(), 0);
+    send(primarydb_sock, buffer, strlen(buffer), 0);
 }
 
 int sendToRocksDB() {
