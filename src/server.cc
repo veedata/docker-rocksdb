@@ -11,6 +11,8 @@
 #include <sys/time.h>
 #include <wordexp.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
+#include <cstring>
 
 #include "rocksdb/db.h"
 #include "rocksdb/options.h"
