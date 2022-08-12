@@ -122,6 +122,9 @@ int sendToRocksDB()
         std::cout << "Input error, ignoring input" << std::endl;
     }
 
+    Status flsh = db->Flush(FlushOptions());
+	if (!flsh.ok()) { fprintf(stderr, "Failed to flush :(\n"); assert(false); }
+
     wordfree(&p);
 
     return 0;
@@ -294,8 +297,8 @@ int main()
 {
 
     // Init steps
-    startServer();
     CreateDB();
+    startServer();
 
     // Read from connection
     while (true)
