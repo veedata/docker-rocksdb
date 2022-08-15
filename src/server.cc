@@ -92,7 +92,6 @@ int startServer() {
 
 int connectToPrimaryDB() {
 
-    struct sockaddr_in primarydb_address;
     struct sockaddr_in primarydb_serv_addr;
 
     if ((primarydb_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
