@@ -61,4 +61,5 @@ COPY src/server.cc /home/server.cc
 RUN \
     chmod +x /home/startup.sh
 
-CMD /bin/bash -c '/home/startup.sh'
+ENTRYPOINT [ "/bin/bash" ]
+CMD ["/home/startup.sh"]
