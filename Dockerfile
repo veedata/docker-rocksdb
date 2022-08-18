@@ -59,6 +59,7 @@ COPY src/Makefile /home/Makefile
 COPY src/server.cc /home/server.cc
 
 RUN \
+    echo "source /home/.rockshdfs_commons" >> ~/.bashrc && \
     chmod +x /home/startup.sh
 
 ENTRYPOINT [ "/bin/bash" ]
