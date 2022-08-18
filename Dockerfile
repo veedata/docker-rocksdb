@@ -62,5 +62,7 @@ RUN \
     echo "source /home/.rockshdfs_commons" >> ~/.bashrc && \
     chmod +x /home/startup.sh
 
+RUN ["/bin/bash", "-c", "source ~/.bashrc"]
+
 ENTRYPOINT [ "/bin/bash" ]
 CMD ["/home/startup.sh"]
