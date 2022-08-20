@@ -25,15 +25,12 @@ RUN \
     libbz2-dev \
     liblz4-dev \
     libzstd-dev && \
-    wget https://github.com/facebook/rocksdb/archive/refs/tags/v7.2.2.tar.gz -O rocksdb.tar.gz && \
+    wget https://github.com/facebook/rocksdb/archive/refs/tags/v7.4.5.tar.gz -O rocksdb.tar.gz && \
     mkdir rocksdb && \
-    tar -xvzf rocksdb.tar.gz -C ./rocksdb && \
-    mv ./rocksdb/rocksdb-7.2.2/* ./rocksdb/ && \
+    tar -xzf rocksdb.tar.gz -C ./rocksdb && \
+    mv ./rocksdb/rocksdb-7.4.5/* ./rocksdb/ && \
     rm rocksdb.tar.gz && \
-    echo "source /home/.rockshdfs_commons" >> ~/.bashrc && \
     rm -rf /var/lib/apt/lists/*
-
-RUN ["/bin/bash", "-c", "source ~/.bashrc"]
 
 WORKDIR /home/rocksdb
 
@@ -64,4 +61,5 @@ COPY src/server.cc /home/server.cc
 RUN \
     chmod +x /home/startup.sh
 
-CMD /bin/bash -c '/home/startup.sh'
+ENTRYPOINT [ "/bin/bash" ]
+CMD ["/home/startup.sh"]
