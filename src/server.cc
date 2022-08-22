@@ -1,25 +1,47 @@
 // Secondary db is only meant to deal with get and scan. 
 // In case of any other request, the data needs to go to primary db
 
-#include <netinet/in.h>
+// General Libraries
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
-#include <sys/socket.h>
-#include <unistd.h>
 #include <iostream>
 #include <sys/time.h>
-#include <wordexp.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
+// Secondary only
 #include <cstring>
+#include <thread>
+#include <vector>
+#include <signal.h>
+#include <typeinfo>
 
+// RocksDB Libraries
 #include "rocksdb/db.h"
 #include "rocksdb/options.h"
 #include "rocksdb/slice.h"
-#include "rocksdb/ldb_tool.h"
+
+// HDFS Libraries
 #include "plugin/hdfs/env_hdfs.h"
 #include "hdfs.h"
+
+// Server Libraries
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <wordexp.h>
+#include <arpa/inet.h>
+
+
+// Declaring Functions
+int StartServer();
+int CheckConnections();
+int StopServer();
+int connectToPrimaryDB();
+void sendToPrimaryDB();
+void disconnectPrimaryDB();
+void OpenDB();
+void sendToRocksDB();
+void CloseDB();
+void CreateDB();
 
 
 using ROCKSDB_NAMESPACE::DB;
@@ -31,24 +53,25 @@ using ROCKSDB_NAMESPACE::Status;
 using ROCKSDB_NAMESPACE::WriteOptions;
 
 
+
 const std::string hdfsEnv = "hdfs://172.17.0.2:9000/";
 const std::string kDBPrimaryPath = "primary";
-std::string kDBSecondaryPath = "secondary/";
-
+std::string kDBSecondaryPath = "secondary/27a5487f5d65";
 
 #define PRIMARYDB_PORT 36728      // Primary DB port
 #define PORT 34728                // Secondary DB port
 
 DB *db = nullptr;
+DB *db_primary = nullptr;
 char buffer[1024] = {0};
 int new_socket, master_socket, addrlen, client_socket[10], max_clients = 10, activity, i, valread, sd, max_sd;
 struct sockaddr_in address;
 int primarydb_sock = 0;
-// int addrlen = sizeof(address);
-//set of socket descriptors 
 fd_set readfds;
 
-int startServer() {
+
+
+int StartServer() {
     int opt = 1;
 
     //initialise all client_socket[] to 0 so not checked 
@@ -85,92 +108,13 @@ int startServer() {
 
     // Accept the incoming connection 
     addrlen = sizeof(address);
+    puts("Server Started!");
     puts("Waiting for connections...");
 
     return 0;
 }
 
-int connectToPrimaryDB() {
-
-    struct sockaddr_in primarydb_serv_addr;
-
-    if ((primarydb_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        printf("Socket creation error");
-        return -1;
-    }
-
-    memset(&primarydb_serv_addr, '0', sizeof(primarydb_serv_addr));
-
-    primarydb_serv_addr.sin_family = AF_INET;
-    primarydb_serv_addr.sin_port = htons(PRIMARYDB_PORT);
-
-    // Convert IPv4 and IPv6 addresses from text to binary form
-    if (inet_pton(AF_INET, "10.105.35.215", &primarydb_serv_addr.sin_addr) <= 0) {
-        printf("Invalid address/ Address not supported"); 
-        return -1;
-    }
-
-    if (connect(primarydb_sock, (struct sockaddr *)&primarydb_serv_addr, sizeof(primarydb_serv_addr)) < 0) {
-        printf("Connection Failed"); 
-        return -1;
-    }
-
-    return 0;
-}
-
-void sendToPrimaryDB() {
-    // Client code here
-    send(primarydb_sock, buffer, strlen(buffer), 0);
-}
-
-int sendToRocksDB() {
-    wordexp_t p;
-    char **w;
-
-    wordexp(buffer, &p, 0);
-    w = p.we_wordv;
-
-    // To be replaced by a way more complex call in the future.
-    // Note: Replacement will probably come in the readData() function
-    Status s = db->TryCatchUpWithPrimary();
-
-    // numberOfArgs -> p.we_wordc
-    // arrayOfArgs --> w
-    // currently implemented: get, scan
-    if (strcmp(w[0], "get") == 0) {
-        std::string value;
-        Status s2 = db->Get(rocksdb::ReadOptions(), w[1], &value);
-        
-        if (s2.ok())
-            std::cout << value << std::endl;
-        else
-            std::cout << "Error in locating value for key " << w[1] << std::endl;
-    }
-    else if (strcmp(w[0], "scan") == 0) {
-        rocksdb::Iterator *it = db->NewIterator(ReadOptions());
-		int count = 0;
-
-		for (it->SeekToFirst(); it->Valid(); it->Next()) {
-			count++;
-            std::cout << it->key().ToString() << std::endl;
-		}
-		
-		fprintf(stdout, "Observed %i keys\n", count); 
-    }
-    else if ((strcmp(w[0], "put") == 0) || (strcmp(w[0], "update") == 0) || (strcmp(w[0], "delete") == 0)) {
-        std::cout << "Sending to PrimaryDB" << std::endl;
-        sendToPrimaryDB();
-    }
-    else {
-        std::cout << "Input error, ignoring input" << std::endl;
-    }
-
-    wordfree(&p);
-
-    return 0;
-}
-
-int checkConnections() {
+int CheckConnections() {
 
     //clear the socket set 
     FD_ZERO(&readfds);  
@@ -259,24 +203,7 @@ int checkConnections() {
     return 0;
 }
 
-int readData()
-{
-    int valread;
-    valread = read(new_socket, buffer, 1024);
-
-    if (buffer[0] != '\0')
-    {
-        sendToRocksDB();
-    }
-
-    // buffer[0] = '\0';
-    memset(&buffer[0], 0, sizeof(buffer));
-
-    return 0;
-}
-
-int stopServer()
-{
+int StopServer() {
     // closing the connected socket
     close(new_socket);
     // closing the listening socket
@@ -285,69 +212,288 @@ int stopServer()
     return 0;
 }
 
+
+int connectToPrimaryDB() {
+
+    struct sockaddr_in primarydb_address;
+    struct sockaddr_in primarydb_serv_addr;
+
+    if ((primarydb_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        printf("Socket creation error");
+        return -1;
+    }
+
+    memset(&primarydb_serv_addr, '0', sizeof(primarydb_serv_addr));
+
+    primarydb_serv_addr.sin_family = AF_INET;
+    primarydb_serv_addr.sin_port = htons(PRIMARYDB_PORT);
+
+    // Convert IPv4 and IPv6 addresses from text to binary form
+    if (inet_pton(AF_INET, "172.17.0.3", &primarydb_serv_addr.sin_addr) <= 0) {
+        printf("Invalid address/ Address not supported"); 
+        return -1;
+    }
+
+    if (connect(primarydb_sock, (struct sockaddr *)&primarydb_serv_addr, sizeof(primarydb_serv_addr)) < 0) {
+        printf("Connection Failed"); 
+        return -1;
+    }
+
+    return 0;
+}
+
+
+void sendToPrimaryDB() {
+    connectToPrimaryDB();
+    send(primarydb_sock, buffer, strlen(buffer), 0);
+    disconnectPrimaryDB();
+}
+
+
+void disconnectPrimaryDB() {
+    close(primarydb_sock);
+}
+
+
+
+void OpenDB() {
+	long my_pid = static_cast<long>(getpid());
+    db = nullptr;
+
+    // getSecondaryDBAddr();
+    // std::cout << "Trying to open db at: " << kDBSecondaryPath << "end" << std::endl; 
+	
+	std::unique_ptr<rocksdb::Env> hdfs;
+    Status s = rocksdb::NewHdfsEnv(hdfsEnv, &hdfs);
+
+	if (!s.ok()) { fprintf(stderr, "[process %ld] Failed to open HDFS env: %s\n", my_pid, s.ToString().c_str()); assert(false); }
+    else { fprintf(stdout, "[process %ld] HDFS Open: %s\n", my_pid, s.ToString().c_str()); assert(true); }
+
+	Options options;
+	options.env = hdfs.get();
+    options.create_if_missing = true;
+    options.max_open_files = -1;
+
+    if (nullptr == db) {
+        s = DB::OpenAsSecondary(options, kDBPrimaryPath, kDBSecondaryPath, &db);
+
+        if (!s.ok()) { fprintf(stderr, "[process %ld] Failed to open DB: %s\n", my_pid, s.ToString().c_str()); assert(false); }
+        else { fprintf(stdout, "[process %ld] DB Open: %s\n", my_pid, s.ToString().c_str()); assert(true); }
+    }
+}
+
+static std::atomic<int> &ShouldSecondaryWait() {
+	static std::atomic<int> should_secondary_wait{1};
+	return should_secondary_wait;
+}
+
+void secondary_instance_sigint_handler(int signal) {
+	ShouldSecondaryWait().store(0, std::memory_order_relaxed);
+	fprintf(stdout, "\n");
+	fflush(stdout);
+};
+
+void sendToRocksDB() {
+
+    ::signal(SIGINT, secondary_instance_sigint_handler);
+    // OpenDB();
+
+    DB* db_secondary;
+
+    long my_pid = static_cast<long>(getpid());
+    db_secondary = nullptr;
+
+    // getSecondaryDBAddr();
+    // std::cout << "Trying to open db at: " << kDBSecondaryPath << "end" << std::endl; 
+	
+	std::unique_ptr<rocksdb::Env> hdfs;
+    Status s = rocksdb::NewHdfsEnv(hdfsEnv, &hdfs);
+
+	if (!s.ok()) { fprintf(stderr, "[process %ld] Failed to open HDFS env: %s\n", my_pid, s.ToString().c_str()); assert(false); }
+    else { fprintf(stdout, "[process %ld] HDFS Open: %s\n", my_pid, s.ToString().c_str()); assert(true); }
+
+	Options options;
+	options.env = hdfs.get();
+    options.create_if_missing = true;
+    options.max_open_files = -1;
+
+    if (nullptr == db_secondary) {
+        s = DB::OpenAsSecondary(options, kDBPrimaryPath, kDBSecondaryPath, &db_secondary);
+
+        if (!s.ok()) { fprintf(stderr, "[process %ld] Failed to open DB: %s\n", my_pid, s.ToString().c_str()); assert(false); }
+        else { fprintf(stdout, "[process %ld] DB Open: %s\n", my_pid, s.ToString().c_str()); assert(true); }
+    }
+
+    wordexp_t p;
+    char **w;
+
+    wordexp(buffer, &p, 0);
+    w = p.we_wordv;
+
+	ReadOptions ropts;
+	ropts.verify_checksums = true;
+	ropts.total_order_seek = true;
+
+    // numberOfArgs -> p.we_wordc
+    // arrayOfArgs --> w
+    // currently implemented: get, scan
+    if (strcmp(w[0], "get") == 0) {
+        
+        // To be replaced by a way more complex call in the future.
+        // Note: Replacement will probably come in the readData() function
+        // primaryCatchUp();
+        Status catch_up = db_secondary->TryCatchUpWithPrimary();
+        if (!catch_up.ok()) {
+            fprintf(stderr, "error while trying to catch up with primary %s\n", catch_up.ToString().c_str());
+            assert(false);
+        }
+
+        std::string value;
+        Status s2 = db_secondary->Get(rocksdb::ReadOptions(), w[1], &value);
+        
+        if (s2.ok())
+            std::cout << value << std::endl;
+        else
+            std::cout << "Error in locating value for key " << w[1] << s2.ToString().c_str() << std::endl;
+    }
+    else if (strcmp(w[0], "scan") == 0) {
+        rocksdb::Iterator *it = db_secondary->NewIterator(ReadOptions());
+		int count = 0;
+
+		for (it->SeekToFirst(); it->Valid(); it->Next()) {
+			count++;
+            std::cout << it->key().ToString() << std::endl;
+		}
+		
+		fprintf(stdout, "Observed %i keys\n", count); 
+    }
+    else if ((strcmp(w[0], "put") == 0) || (strcmp(w[0], "update") == 0) || (strcmp(w[0], "delete") == 0)) {
+        std::cout << "Sending to PrimaryDB" << std::endl;
+        sendToPrimaryDB();
+    }
+    else {
+        std::cout << "Input error, ignoring input" << std::endl;
+    }
+
+    wordfree(&p);
+
+
+
+	// std::vector<std::thread> test_threads;
+
+    // // To be replaced by a way more complex call in the future.
+    // // Note: Replacement will probably come in the readData() function
+    // while (1 == ShouldSecondaryWait().load(std::memory_order_relaxed)) {
+	// 	Status s = db_secondary->TryCatchUpWithPrimary();
+	// }
+
+    // // numberOfArgs -> p.we_wordc
+    // // arrayOfArgs --> w
+    // // currently implemented: get, scan
+    // if (strcmp(w[0], "get") == 0) {
+
+    //     test_threads.emplace_back([&]() {
+    //         std::srand(time(nullptr));
+    //         while (1 == ShouldSecondaryWait().load(std::memory_order_relaxed)) {
+    //             // Slice key = Key(std::rand() % kMaxKey); 
+    //             std::string value;
+    //             Status s2 = db_secondary->Get(ropts, w[1], &value);
+    //             if (s2.ok())
+    //                 std::cout << value << std::endl;
+    //             else
+    //                 std::cout << "Error in locating value for key " << w[1] << s2.ToString().c_str() << std::endl;
+    //         }
+    //         fprintf(stdout, "[process] Point lookup thread finished\n"); 
+    //     });
+    // }
+    // else if (strcmp(w[0], "scan") == 0) {
+    //     test_threads.emplace_back([&]() {
+    //         while (1 == ShouldSecondaryWait().load(std::memory_order_relaxed)) {
+    //             std::unique_ptr<Iterator> iter(db_secondary->NewIterator(ropts));
+    //             iter->SeekToFirst();
+    //             for (; iter->Valid(); iter->Next()) {
+    //                 std::cout << iter->key().ToString() << std::endl;
+    //             }
+    //         }
+    //         fprintf(stdout, "[process] Range_scan thread finished\n"); 
+    //     });
+    // }
+    // else if ((strcmp(w[0], "put") == 0) || (strcmp(w[0], "update") == 0) || (strcmp(w[0], "delete") == 0)) {
+    //     std::cout << "Sending to PrimaryDB" << std::endl;
+    //     sendToPrimaryDB();
+    // }
+    // else {
+    //     std::cout << "Input error, ignoring input" << std::endl;
+    // }
+
+    // wordfree(&p);
+
+    // CloseDB();
+
+    if (nullptr != db_secondary) {
+		delete db_secondary;
+		db_secondary = nullptr;
+	}
+}
+
+void CloseDB() {
+    if (nullptr != db) {
+		delete db;
+		db = nullptr;
+	}
+}
+
 void getSecondaryDBAddr() {
-    std::string host = "";
     char hostname[HOST_NAME_MAX] = {0};
     gethostname(hostname, HOST_NAME_MAX);
     
     for (char ch: hostname)
-        host += ch;
-
-    kDBSecondaryPath += host;
+        kDBSecondaryPath += ch;
 }
 
 void CreateDB() {
-    getSecondaryDBAddr();
 
+    // getSecondaryDBAddr();
+    std::cout << "Trying to open db at: " << kDBSecondaryPath << "end" << std::endl; 
 	long my_pid = static_cast<long>(getpid());
 	
 	std::unique_ptr<rocksdb::Env> hdfs;
     Status s = rocksdb::NewHdfsEnv(hdfsEnv, &hdfs);
-	if (!s.ok()) { fprintf(stderr, "[process %ld] Failed to open DB: %s\n", my_pid, s.ToString().c_str()); assert(false); }
+	if (!s.ok()) { fprintf(stderr, "[process %ld] Failed to open HDFS env: %s\n", my_pid, s.ToString().c_str()); assert(false); }
+    else { fprintf(stdout, "[process %ld] HDFS Open: %s\n", my_pid, s.ToString().c_str()); assert(true); }
 
 	Options options;
 	options.env = hdfs.get();
+    options.create_if_missing = true;
     options.max_open_files = -1;
 
+    db = nullptr;
     s = DB::OpenAsSecondary(options, kDBPrimaryPath, kDBSecondaryPath, &db);
+
 	if (!s.ok()) { fprintf(stderr, "[process %ld] Failed to open DB: %s\n", my_pid, s.ToString().c_str()); assert(false); }
-    else { fprintf(stderr, "[process %ld] DB Open: %s\n", my_pid, s.ToString().c_str()); assert(true); }
+    else { fprintf(stdout, "[process %ld] DB Open: %s\n", my_pid, s.ToString().c_str()); assert(true); }
+
+    delete db;
 }
 
-void RemoveDB() {
-	long my_pid = static_cast<long>(getpid());
-
-	std::unique_ptr<rocksdb::Env> hdfs;
-    Status s = rocksdb::NewHdfsEnv(hdfsEnv, &hdfs);
-	if (!s.ok()) { fprintf(stderr, "[process %ld] Failed to open DB: %s\n", my_pid, s.ToString().c_str()); assert(false); }
-
-    Options options;
-	options.env = hdfs.get();
-    options.max_open_files = -1;
-	
-    s = DestroyDB(kDBPrimaryPath, options);
-}
-
-int main()
-{
+int main() {
 
     // Init steps
-    startServer();
-    connectToPrimaryDB();
+    // connectToPrimaryDB();
     CreateDB();
+    StartServer();
 
     // Read from connection
     while (true)
     {   
-        checkConnections();
+        CheckConnections();
         buffer[0] = '\0';
         // readData();
     }
 
     // Close connection
     // Currently should not be reached!
-    stopServer();
-    RemoveDB();
+    StopServer();
 
     return 0;
 }
