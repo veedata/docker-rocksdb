@@ -42,6 +42,7 @@ void OpenDB();
 void sendToRocksDB();
 void CloseDB();
 void CreateDB();
+std::string getSecondaryDBAddr();
 
 
 using ROCKSDB_NAMESPACE::DB;
@@ -56,7 +57,8 @@ using ROCKSDB_NAMESPACE::WriteOptions;
 
 const std::string hdfsEnv = "hdfs://172.17.0.2:9000/";
 const std::string kDBPrimaryPath = "primary";
-std::string kDBSecondaryPath = "secondary/27a5487f5d65";
+// const std::string kDBSecondaryPath = "secondary/";
+const std::string kDBSecondaryPath = getSecondaryDBAddr();
 
 #define PRIMARYDB_PORT 36728      // Primary DB port
 #define PORT 34728                // Secondary DB port
@@ -271,7 +273,7 @@ void OpenDB() {
 
 	Options options;
 	options.env = hdfs.get();
-    options.create_if_missing = true;
+    // options.create_if_missing = true;
     options.max_open_files = -1;
 
     if (nullptr == db) {
@@ -443,18 +445,26 @@ void CloseDB() {
 	}
 }
 
-void getSecondaryDBAddr() {
+std::string getSecondaryDBAddr() {
+
+    std::string curr_path = "secondary/";
+    // std::string host = "";
+
     char hostname[HOST_NAME_MAX] = {0};
     gethostname(hostname, HOST_NAME_MAX);
     
-    for (char ch: hostname)
-        kDBSecondaryPath += ch;
+    // for (char ch: hostname)
+    //     host += ch;
+
+    curr_path += hostname;
+
+    return curr_path;
 }
 
 void CreateDB() {
 
     // getSecondaryDBAddr();
-    std::cout << "Trying to open db at: " << kDBSecondaryPath << "end" << std::endl; 
+    std::cout << "Trying to open db at: " << kDBSecondaryPath << " end" << std::endl; 
 	long my_pid = static_cast<long>(getpid());
 	
 	std::unique_ptr<rocksdb::Env> hdfs;
