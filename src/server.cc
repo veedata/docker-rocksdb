@@ -46,7 +46,7 @@ using ROCKSDB_NAMESPACE::WriteOptions;
 
 
 
-const std::string hdfsEnv = "hdfs://172.17.0.2:9000/";
+const std::string hdfsEnv = "hdfs://172.17.0.5:9000/";
 const std::string kDBPrimaryPath = "primary";
 const std::string kDBSecondaryPath = "secondary";
 
