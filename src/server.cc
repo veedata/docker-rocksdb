@@ -1,5 +1,13 @@
+// TO DO:
+// 1. Update comments in the entire file
+// 2. Remove un-used variables
+// 3. Fix the data corruption on receive issue
+// 4. Implement column families addition
+// 5. Setup skeleton for the multi-sync system
+
+
 // Primary db is only meant to deal with put, delete and update. 
-// In case of any other request, the data needs to go to secondary db
+// In case of any read request, the data needs to stay with secondary db
 
 // General Libraries
 #include <stdio.h>
@@ -35,7 +43,7 @@ void CloseDB();
 void CreateDB();
 
 
-
+// Namespaces used
 using ROCKSDB_NAMESPACE::DB;
 using ROCKSDB_NAMESPACE::FlushOptions;
 using ROCKSDB_NAMESPACE::Iterator;
@@ -45,15 +53,12 @@ using ROCKSDB_NAMESPACE::Status;
 using ROCKSDB_NAMESPACE::WriteOptions;
 
 
-
+// DB related variables
 const std::string hdfsEnv = "hdfs://172.17.0.5:9000/";
 const std::string kDBPrimaryPath = "primary";
-const std::string kDBSecondaryPath = "secondary";
 
+// Server related variables
 #define PORT 36728      // Primary DB port
-// #define PORT 34728   // Secondary DB port
-
-DB* db = nullptr;
 char buffer[1024] = {0};
 int new_socket, master_socket, addrlen, client_socket[10], max_clients = 10, activity, i, valread, sd, max_sd;
 struct sockaddr_in address;
@@ -146,11 +151,6 @@ int CheckConnections() {
         // inform user of socket number - used in send and receive commands 
         printf("New connection , socket fd is %d , ip is : %s , port : %d\n" , new_socket , inet_ntoa(address.sin_addr) , ntohs(address.sin_port));
 
-        //send new connection greeting message 
-        // if (send(new_socket, message, strlen(message), 0) != strlen(message)) {  
-        //     perror("send");  
-        // }  
-
         //add new socket to array of sockets 
         for (i = 0; i < max_clients; i++) {  
             //if position is empty 
@@ -185,7 +185,7 @@ int CheckConnections() {
                 sendToRocksDB();
                 //set the string terminating NULL byte on the end of the data read 
                 buffer[valread] = '\0';  
-                send(sd , buffer , strlen(buffer) , 0 );  
+                // send(sd , buffer , strlen(buffer) , 0 );  
             }  
         }
     }
@@ -202,57 +202,25 @@ int StopServer() {
     return 0;
 }
 
-void OpenDB() {
-    long my_pid = static_cast<long>(getpid());
-    db = nullptr;
+// Parse the buffer and convert it to rocksdb understandable functions and send to RocksDB! 
+void sendToRocksDB() {
 
+    DB* db_primary = nullptr; 
+    long my_pid = static_cast<long>(getpid());
+
+    // Connect to HDFS again and then create the table, this time can have the create_if_missing to false
     std::unique_ptr<rocksdb::Env> hdfs;
     Status s = rocksdb::NewHdfsEnv(hdfsEnv, &hdfs);
-    
 
-    if (!s.ok()) {
+    if (!s.ok())
         fprintf(stderr, "[process %ld] Failed to open DB: %s\n", my_pid, s.ToString().c_str());
-        assert(false);
-    }
+    assert(s.ok());
 
     Options options;
     options.env = hdfs.get();
     options.create_if_missing = false;
 
-    if (nullptr == db) {
-        s = DB::Open(options, kDBPrimaryPath, &db);
-        if (!s.ok()) 
-            fprintf(stderr, "[process %ld] Failed to open DB: %s\n", my_pid, s.ToString().c_str());
-        else
-            fprintf(stdout, "[process %ld] DB Open: %s\n", my_pid, s.ToString().c_str());
-        assert(s.ok());
-    }
-}
-
-void sendToRocksDB()
-{
-    // if (nullptr != db) {
-    //     OpenDB();
-	// }
-
-    DB* db_primary; 
-
-    long my_pid = static_cast<long>(getpid());
-    db_primary = nullptr;
-
-    std::unique_ptr<rocksdb::Env> hdfs;
-    Status s = rocksdb::NewHdfsEnv(hdfsEnv, &hdfs);
-    
-
-    if (!s.ok()) {
-        fprintf(stderr, "[process %ld] Failed to open DB: %s\n", my_pid, s.ToString().c_str());
-        assert(false);
-    }
-
-    Options options;
-    options.env = hdfs.get();
-    options.create_if_missing = false;
-
+    // Probably useless if condition, but have added it for safety. Thing is.. safety from what?
     if (nullptr == db_primary) {
         s = DB::Open(options, kDBPrimaryPath, &db_primary);
         if (!s.ok()) 
@@ -262,6 +230,7 @@ void sendToRocksDB()
         assert(s.ok());
     }
 
+    // Using wordexp_t to strip at spaces (amongst other things that may be used if we do ldb in the future)
     wordexp_t p;
     char **w;
 
@@ -269,8 +238,8 @@ void sendToRocksDB()
     w = p.we_wordv;
 
     // numberOfArgs -> p.we_wordc
-    // arrayOfArgs --> w
-    // currently implemented: get, put, scan, delete, update
+    // arrayOfArgs --> w or p.we_wordv
+
     if ((strcmp(w[0], "put") == 0) || (strcmp(w[0], "update") == 0)) {
         Status s;
         if (p.we_wordc >= 4) 
@@ -291,31 +260,6 @@ void sendToRocksDB()
         else
             std::cout << "Error in deleting key " << w[1] << std::endl;
     }
-    else if (strcmp(w[0], "get") == 0) {
-        
-        // To be replaced by a way more complex call in the future.
-        // Note: Replacement will probably come in the readData() function
-        // primaryCatchUp();
-
-        std::string value;
-        Status s2 = db_primary->Get(rocksdb::ReadOptions(), w[1], &value);
-        
-        if (s2.ok())
-            std::cout << value << std::endl;
-        else
-            std::cout << "Error in locating value for key " << w[1] << std::endl;
-    }
-    else if (strcmp(w[0], "scan") == 0) {
-        rocksdb::Iterator *it = db_primary->NewIterator(ReadOptions());
-		int count = 0;
-
-		for (it->SeekToFirst(); it->Valid(); it->Next()) {
-			count++;
-            std::cout << it->key().ToString() << std::endl;
-		}
-		
-		fprintf(stdout, "Observed %i keys\n", count); 
-    }
     else {
         std::cout << "Input error, ignoring input" << std::endl;
     }
@@ -328,11 +272,6 @@ void sendToRocksDB()
 
     wordfree(&p);
 
-    // if (nullptr != db) {
-    //     CloseDB();
-	// }
-
-
     if (nullptr != db_primary) {
         std::cout << "Trying to delete DB" <<std::endl; 
 		delete db_primary;
@@ -340,53 +279,37 @@ void sendToRocksDB()
 	}
 }
 
-void CloseDB() {
-    if (nullptr != db) {
-        std::cout << "Trying to delete DB" <<std::endl; 
-		delete db;
-		db = nullptr;
-	}
-}
-
+// Creating DB before opening it to access. This way we can have the create_if_missing option as false later
 void CreateDB() {
+
+    DB* db = nullptr;
     long my_pid = static_cast<long>(getpid());
 
+    // To connect to the HDFS environment
     std::unique_ptr<rocksdb::Env> hdfs;
-    Status hdfsopen = rocksdb::NewHdfsEnv(hdfsEnv, &hdfs);
+    Status s = rocksdb::NewHdfsEnv(hdfsEnv, &hdfs);
     
-    if (!hdfsopen.ok()) 
+    if (!s.ok()) 
         fprintf(stderr, "[process %ld] Failed to open HDFS env: %s\n", my_pid, hdfsopen.ToString().c_str());
     else 
         printf("Opened HDFS env");
 
-    assert(hdfsopen.ok());
+    assert(s.ok());
 
     Options options;
     options.env = hdfs.get();
     options.create_if_missing = true;
 
-    // Status s = ROCKSDB_NAMESPACE::DestroyDB(kDBPrimaryPath, options);
-    // if (!s.ok()) {
-    //     fprintf(stderr, "[process %ld] Failed to destroy DB: %s\n", my_pid, s.ToString().c_str());
-    //     assert(false);
-    // }
+    // Open the DB
+    s = DB::Open(options, kDBPrimaryPath, &db);
 
-    // hdfsopen = rocksdb::NewHdfsEnv(hdfsEnv, &hdfs);
-    
-    if (!hdfsopen.ok()) 
-        fprintf(stderr, "[process %ld] Failed to open HDFS env: %s\n", my_pid, hdfsopen.ToString().c_str());
-    else 
-        printf("Opened HDFS env part 2 \n");
-
-    db = nullptr;
-    Status s = DB::Open(options, kDBPrimaryPath, &db);
     if (!s.ok())
         fprintf(stderr, "[process %ld] Failed to open DB: %s\n", my_pid, s.ToString().c_str());
     else 
         printf("DB Open at: %s", kDBPrimaryPath.c_str());
-
     assert(s.ok());
 
+    // Close the DB (Nnot destroy, just close it)
     delete db;
 }
 
