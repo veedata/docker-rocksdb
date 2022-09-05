@@ -1,9 +1,7 @@
 // TO DO:
-// 1. Update comments in the entire file
-// 2. Remove un-used variables
-// 3. Fix the data corruption on receive issue
-// 4. Implement column families addition
-// 5. Setup skeleton for the multi-sync system
+// 1. Fix the data corruption on receive issue
+// 2. Implement column families addition
+// 3. Setup skeleton for the multi-sync system
 
 
 // Primary db is only meant to deal with put, delete and update. 
