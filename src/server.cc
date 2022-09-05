@@ -1,3 +1,8 @@
+// TO DO:
+// 1. Fix the data corruption on receive issue
+// 2. Implement column families addition
+// 3. Setup skeleton for the multi-sync system
+
 // Secondary db is only meant to deal with get and scan. 
 // In case of any other request, the data needs to go to primary db
 
