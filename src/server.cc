@@ -7,7 +7,8 @@
 #include <string>
 #include <iostream>
 #include <sys/time.h>
-// Secondary only
+
+// Secondary only - some only needed for testing
 #include <cstring>
 #include <thread>
 #include <vector>
@@ -57,13 +58,11 @@ using ROCKSDB_NAMESPACE::WriteOptions;
 
 const std::string hdfsEnv = "hdfs://172.17.0.5:9000/";
 const std::string kDBPrimaryPath = "primary";
-// const std::string kDBSecondaryPath = "secondary/";
 const std::string kDBSecondaryPath = getSecondaryDBAddr();
 
 #define PRIMARYDB_PORT 36728      // Primary DB port
 #define PORT 34728                // Secondary DB port
 
-DB *db = nullptr;
 DB *db_primary = nullptr;
 char buffer[1024] = {0};
 int new_socket, master_socket, addrlen, client_socket[10], max_clients = 10, activity, i, valread, sd, max_sd;
@@ -257,33 +256,6 @@ void disconnectPrimaryDB() {
 }
 
 
-
-void OpenDB() {
-	long my_pid = static_cast<long>(getpid());
-    db = nullptr;
-
-    // getSecondaryDBAddr();
-    // std::cout << "Trying to open db at: " << kDBSecondaryPath << "end" << std::endl; 
-	
-	std::unique_ptr<rocksdb::Env> hdfs;
-    Status s = rocksdb::NewHdfsEnv(hdfsEnv, &hdfs);
-
-	if (!s.ok()) { fprintf(stderr, "[process %ld] Failed to open HDFS env: %s\n", my_pid, s.ToString().c_str()); assert(false); }
-    else { fprintf(stdout, "[process %ld] HDFS Open: %s\n", my_pid, s.ToString().c_str()); assert(true); }
-
-	Options options;
-	options.env = hdfs.get();
-    // options.create_if_missing = true;
-    options.max_open_files = -1;
-
-    if (nullptr == db) {
-        s = DB::OpenAsSecondary(options, kDBPrimaryPath, kDBSecondaryPath, &db);
-
-        if (!s.ok()) { fprintf(stderr, "[process %ld] Failed to open DB: %s\n", my_pid, s.ToString().c_str()); assert(false); }
-        else { fprintf(stdout, "[process %ld] DB Open: %s\n", my_pid, s.ToString().c_str()); assert(true); }
-    }
-}
-
 static std::atomic<int> &ShouldSecondaryWait() {
 	static std::atomic<int> should_secondary_wait{1};
 	return should_secondary_wait;
@@ -297,17 +269,15 @@ void secondary_instance_sigint_handler(int signal) {
 
 void sendToRocksDB() {
 
+    // Need to test code without this - It is basically for checking for user interrupts from what I understand
+    // It additionally also makes sure that there is concurrency in code (memory_order_relaxed). So, usefulness is unknown
     ::signal(SIGINT, secondary_instance_sigint_handler);
-    // OpenDB();
 
     DB* db_secondary;
 
     long my_pid = static_cast<long>(getpid());
     db_secondary = nullptr;
 
-    // getSecondaryDBAddr();
-    // std::cout << "Trying to open db at: " << kDBSecondaryPath << "end" << std::endl; 
-	
 	std::unique_ptr<rocksdb::Env> hdfs;
     Status s = rocksdb::NewHdfsEnv(hdfsEnv, &hdfs);
 
@@ -379,82 +349,19 @@ void sendToRocksDB() {
 
     wordfree(&p);
 
-
-
-	// std::vector<std::thread> test_threads;
-
-    // // To be replaced by a way more complex call in the future.
-    // // Note: Replacement will probably come in the readData() function
-    // while (1 == ShouldSecondaryWait().load(std::memory_order_relaxed)) {
-	// 	Status s = db_secondary->TryCatchUpWithPrimary();
-	// }
-
-    // // numberOfArgs -> p.we_wordc
-    // // arrayOfArgs --> w
-    // // currently implemented: get, scan
-    // if (strcmp(w[0], "get") == 0) {
-
-    //     test_threads.emplace_back([&]() {
-    //         std::srand(time(nullptr));
-    //         while (1 == ShouldSecondaryWait().load(std::memory_order_relaxed)) {
-    //             // Slice key = Key(std::rand() % kMaxKey); 
-    //             std::string value;
-    //             Status s2 = db_secondary->Get(ropts, w[1], &value);
-    //             if (s2.ok())
-    //                 std::cout << value << std::endl;
-    //             else
-    //                 std::cout << "Error in locating value for key " << w[1] << s2.ToString().c_str() << std::endl;
-    //         }
-    //         fprintf(stdout, "[process] Point lookup thread finished\n"); 
-    //     });
-    // }
-    // else if (strcmp(w[0], "scan") == 0) {
-    //     test_threads.emplace_back([&]() {
-    //         while (1 == ShouldSecondaryWait().load(std::memory_order_relaxed)) {
-    //             std::unique_ptr<Iterator> iter(db_secondary->NewIterator(ropts));
-    //             iter->SeekToFirst();
-    //             for (; iter->Valid(); iter->Next()) {
-    //                 std::cout << iter->key().ToString() << std::endl;
-    //             }
-    //         }
-    //         fprintf(stdout, "[process] Range_scan thread finished\n"); 
-    //     });
-    // }
-    // else if ((strcmp(w[0], "put") == 0) || (strcmp(w[0], "update") == 0) || (strcmp(w[0], "delete") == 0)) {
-    //     std::cout << "Sending to PrimaryDB" << std::endl;
-    //     sendToPrimaryDB();
-    // }
-    // else {
-    //     std::cout << "Input error, ignoring input" << std::endl;
-    // }
-
-    // wordfree(&p);
-
-    // CloseDB();
-
     if (nullptr != db_secondary) {
 		delete db_secondary;
 		db_secondary = nullptr;
 	}
 }
 
-void CloseDB() {
-    if (nullptr != db) {
-		delete db;
-		db = nullptr;
-	}
-}
 
 std::string getSecondaryDBAddr() {
 
     std::string curr_path = "secondary/";
-    // std::string host = "";
 
     char hostname[HOST_NAME_MAX] = {0};
     gethostname(hostname, HOST_NAME_MAX);
-    
-    // for (char ch: hostname)
-    //     host += ch;
 
     curr_path += hostname;
 
@@ -463,7 +370,7 @@ std::string getSecondaryDBAddr() {
 
 void CreateDB() {
 
-    // getSecondaryDBAddr();
+    DB *db = nullptr;
     std::cout << "Trying to open db at: " << kDBSecondaryPath << " end" << std::endl; 
 	long my_pid = static_cast<long>(getpid());
 	
@@ -477,7 +384,6 @@ void CreateDB() {
     options.create_if_missing = true;
     options.max_open_files = -1;
 
-    db = nullptr;
     s = DB::OpenAsSecondary(options, kDBPrimaryPath, kDBSecondaryPath, &db);
 
 	if (!s.ok()) { fprintf(stderr, "[process %ld] Failed to open DB: %s\n", my_pid, s.ToString().c_str()); assert(false); }
@@ -498,7 +404,6 @@ int main() {
     {   
         CheckConnections();
         buffer[0] = '\0';
-        // readData();
     }
 
     // Close connection
