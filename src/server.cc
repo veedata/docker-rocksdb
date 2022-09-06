@@ -250,9 +250,9 @@ int connectToPrimaryDB() {
 
 
 void sendToPrimaryDB() {
-    connectToPrimaryDB();
+    // connectToPrimaryDB();
     send(primarydb_sock, buffer, strlen(buffer), 0);
-    disconnectPrimaryDB();
+    // disconnectPrimaryDB();
 }
 
 
@@ -408,6 +408,7 @@ int main() {
     // connectToPrimaryDB();
     CreateDB();
     StartServer();
+    connectToPrimaryDB();
 
     // Read from connection
     while (true)
@@ -418,6 +419,7 @@ int main() {
 
     // Close connection
     // Currently should not be reached!
+    disconnectPrimaryDB();
     StopServer();
 
     return 0;
