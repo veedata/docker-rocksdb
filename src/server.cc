@@ -288,7 +288,7 @@ void CreateDB() {
     Status s = rocksdb::NewHdfsEnv(hdfsEnv, &hdfs);
     
     if (!s.ok()) 
-        fprintf(stderr, "[process %ld] Failed to open HDFS env: %s\n", my_pid, hdfsopen.ToString().c_str());
+        fprintf(stderr, "[process %ld] Failed to open HDFS env: %s\n", my_pid, s.ToString().c_str());
     else 
         printf("Opened HDFS env");
 
