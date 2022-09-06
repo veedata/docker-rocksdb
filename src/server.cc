@@ -235,7 +235,7 @@ int connectToPrimaryDB() {
     primarydb_serv_addr.sin_port = htons(PRIMARYDB_PORT);
 
     // Convert IPv4 and IPv6 addresses from text to binary form
-    if (inet_pton(AF_INET, "172.17.0.13", &primarydb_serv_addr.sin_addr) <= 0) {
+    if (inet_pton(AF_INET, "172.17.0.8", &primarydb_serv_addr.sin_addr) <= 0) {
         printf("Invalid address/ Address not supported"); 
         return -1;
     }
@@ -261,6 +261,11 @@ void disconnectPrimaryDB() {
 }
 
 
+
+// Random comments
+// https://en.cppreference.com/w/cpp/atomic/memory_order
+// https://stackoverflow.com/questions/31150809/understanding-memory-order-relaxed
+// https://stackoverflow.com/questions/16294153/what-is-the-signal-function-sigint
 static std::atomic<int> &ShouldSecondaryWait() {
 	static std::atomic<int> should_secondary_wait{1};
 	return should_secondary_wait;
