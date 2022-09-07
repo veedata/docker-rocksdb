@@ -69,7 +69,6 @@ const std::string kDBSecondaryPath = getSecondaryDBAddr();
 #define PORT 34728                // Secondary DB port
 
 DB *db_primary = nullptr;
-DB* db_secondary = nullptr;
 char buffer[1024] = {0};
 int new_socket, master_socket, addrlen, client_socket[10], max_clients = 10, activity, i, valread, sd, max_sd;
 struct sockaddr_in address;
@@ -284,8 +283,8 @@ void sendToRocksDB() {
     // It additionally also makes sure that there is concurrency in code (memory_order_relaxed). So, usefulness is unknown
     ::signal(SIGINT, secondary_instance_sigint_handler);
 
-    // DB* db_secondary;
-    // db_secondary = nullptr;
+    DB* db_secondary;
+    db_secondary = nullptr;
 
     long my_pid = static_cast<long>(getpid());
     
@@ -361,10 +360,10 @@ void sendToRocksDB() {
 
     wordfree(&p);
 
-    // if (nullptr != db_secondary) {
-	// 	delete db_secondary;
-	// 	db_secondary = nullptr;
-	// }
+    if (nullptr != db_secondary) {
+		delete db_secondary;
+		db_secondary = nullptr;
+	}
 }
 
 
