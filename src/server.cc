@@ -200,6 +200,13 @@ int StopServer() {
     return 0;
 }
 
+// // Add all column families here
+// const std::vector<std::string>& GetColumnFamilyNames() {
+//   static std::vector<std::string> column_family_names = {
+//       ROCKSDB_NAMESPACE::kDefaultColumnFamilyName, "priority0", "priority1", "priority2"};
+//   return column_family_names;
+// }
+
 // Parse the buffer and convert it to rocksdb understandable functions and send to RocksDB! 
 void sendToRocksDB() {
 
@@ -220,6 +227,14 @@ void sendToRocksDB() {
 
     // Probably useless if condition, but have added it for safety. Thing is.. safety from what?
     if (nullptr == db_primary) {
+
+        // std::vector<ColumnFamilyDescriptor> column_families;
+        // for (const auto& cf_name : GetColumnFamilyNames()) {
+        //     column_families.push_back(ColumnFamilyDescriptor(cf_name, options));
+        // }
+        // std::vector<ColumnFamilyHandle*> handles;
+
+        // s = DB::Open(options, kDBPrimaryPath, column_families, &handles, &db_primary);
         s = DB::Open(options, kDBPrimaryPath, &db_primary);
         if (!s.ok()) 
             fprintf(stderr, "[process %ld] Failed to open DB: %s\n", my_pid, s.ToString().c_str());
@@ -271,6 +286,13 @@ void sendToRocksDB() {
     wordfree(&p);
 
     if (nullptr != db_primary) {
+
+        // // Remove Column Families
+        // for (auto h : handles) {
+        //     delete h;
+        // }
+        // handles.clear();
+
         std::cout << "Trying to delete DB" <<std::endl; 
 		delete db_primary;
 		db_primary = nullptr;
@@ -306,6 +328,27 @@ void CreateDB() {
     else 
         printf("DB Open at: %s", kDBPrimaryPath.c_str());
     assert(s.ok());
+
+    // std::vector<ColumnFamilyHandle*> handles;
+    // ColumnFamilyOptions cf_opts(options);
+    
+    // // Initialise all the CFs
+    // for (const auto& cf_name : GetColumnFamilyNames()) {
+    //     if (ROCKSDB_NAMESPACE::kDefaultColumnFamilyName != cf_name) {
+    //         ColumnFamilyHandle* handle = nullptr;
+    //         s = db->CreateColumnFamily(cf_opts, cf_name, &handle);
+    //         if (!s.ok()) { fprintf(stderr, "[process %ld] Failed to create CF %s: %s\n", my_pid, cf_name.c_str(), s.ToString().c_str()); assert(false); }
+            
+    //         handles.push_back(handle);
+    //     }
+    // }
+    // fprintf(stdout, "[process %ld] Column families created\n", my_pid);
+    
+    // // Delete all the CFs
+    // for (auto h : handles) {
+    //     delete h;
+    // }
+    // handles.clear();
 
     // Close the DB (Nnot destroy, just close it)
     delete db;
