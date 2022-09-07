@@ -284,23 +284,22 @@ void sendToRocksDB() {
     ::signal(SIGINT, secondary_instance_sigint_handler);
 
     DB* db_secondary;
-    db_secondary = nullptr;
 
     long my_pid = static_cast<long>(getpid());
-    
+    db_secondary = nullptr;
+
+	std::unique_ptr<rocksdb::Env> hdfs;
+    Status s = rocksdb::NewHdfsEnv(hdfsEnv, &hdfs);
+
+	if (!s.ok()) { fprintf(stderr, "[process %ld] Failed to open HDFS env: %s\n", my_pid, s.ToString().c_str()); assert(false); }
+    else { fprintf(stdout, "[process %ld] HDFS Open: %s\n", my_pid, s.ToString().c_str()); assert(true); }
+
+	Options options;
+	options.env = hdfs.get();
+    options.create_if_missing = true;
+    options.max_open_files = -1;
+
     if (nullptr == db_secondary) {
-
-        std::unique_ptr<rocksdb::Env> hdfs;
-        Status s = rocksdb::NewHdfsEnv(hdfsEnv, &hdfs);
-
-        if (!s.ok()) { fprintf(stderr, "[process %ld] Failed to open HDFS env: %s\n", my_pid, s.ToString().c_str()); assert(false); }
-        else { fprintf(stdout, "[process %ld] HDFS Open: %s\n", my_pid, s.ToString().c_str()); assert(true); }
-
-        Options options;
-        options.env = hdfs.get();
-        options.create_if_missing = true;
-        options.max_open_files = -1;
-
         s = DB::OpenAsSecondary(options, kDBPrimaryPath, kDBSecondaryPath, &db_secondary);
 
         if (!s.ok()) { fprintf(stderr, "[process %ld] Failed to open DB: %s\n", my_pid, s.ToString().c_str()); assert(false); }
