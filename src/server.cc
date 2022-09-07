@@ -69,6 +69,7 @@ const std::string kDBSecondaryPath = getSecondaryDBAddr();
 #define PORT 34728                // Secondary DB port
 
 DB *db_primary = nullptr;
+DB* db_secondary = nullptr;
 char buffer[1024] = {0};
 int new_socket, master_socket, addrlen, client_socket[10], max_clients = 10, activity, i, valread, sd, max_sd;
 struct sockaddr_in address;
@@ -283,23 +284,24 @@ void sendToRocksDB() {
     // It additionally also makes sure that there is concurrency in code (memory_order_relaxed). So, usefulness is unknown
     ::signal(SIGINT, secondary_instance_sigint_handler);
 
-    DB* db_secondary;
+    // DB* db_secondary;
+    // db_secondary = nullptr;
 
     long my_pid = static_cast<long>(getpid());
-    db_secondary = nullptr;
-
-	std::unique_ptr<rocksdb::Env> hdfs;
-    Status s = rocksdb::NewHdfsEnv(hdfsEnv, &hdfs);
-
-	if (!s.ok()) { fprintf(stderr, "[process %ld] Failed to open HDFS env: %s\n", my_pid, s.ToString().c_str()); assert(false); }
-    else { fprintf(stdout, "[process %ld] HDFS Open: %s\n", my_pid, s.ToString().c_str()); assert(true); }
-
-	Options options;
-	options.env = hdfs.get();
-    options.create_if_missing = true;
-    options.max_open_files = -1;
-
+    
     if (nullptr == db_secondary) {
+
+        std::unique_ptr<rocksdb::Env> hdfs;
+        Status s = rocksdb::NewHdfsEnv(hdfsEnv, &hdfs);
+
+        if (!s.ok()) { fprintf(stderr, "[process %ld] Failed to open HDFS env: %s\n", my_pid, s.ToString().c_str()); assert(false); }
+        else { fprintf(stdout, "[process %ld] HDFS Open: %s\n", my_pid, s.ToString().c_str()); assert(true); }
+
+        Options options;
+        options.env = hdfs.get();
+        options.create_if_missing = true;
+        options.max_open_files = -1;
+
         s = DB::OpenAsSecondary(options, kDBPrimaryPath, kDBSecondaryPath, &db_secondary);
 
         if (!s.ok()) { fprintf(stderr, "[process %ld] Failed to open DB: %s\n", my_pid, s.ToString().c_str()); assert(false); }
@@ -359,10 +361,10 @@ void sendToRocksDB() {
 
     wordfree(&p);
 
-    if (nullptr != db_secondary) {
-		delete db_secondary;
-		db_secondary = nullptr;
-	}
+    // if (nullptr != db_secondary) {
+	// 	delete db_secondary;
+	// 	db_secondary = nullptr;
+	// }
 }
 
 
