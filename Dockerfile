@@ -25,10 +25,10 @@ RUN \
     libbz2-dev \
     liblz4-dev \
     libzstd-dev && \
-    wget https://github.com/facebook/rocksdb/archive/refs/tags/v7.4.5.tar.gz -O rocksdb.tar.gz && \
+    wget https://github.com/asu-idi/rocksdb_tcuwp/archive/refs/tags/7.5.T1.tar.gz -O rocksdb.tar.gz && \
     mkdir rocksdb && \
     tar -xzf rocksdb.tar.gz -C ./rocksdb && \
-    mv ./rocksdb/rocksdb-7.4.5/* ./rocksdb/ && \
+    mv ./rocksdb/rocksdb_tcuwp-7.5.T1/* ./rocksdb/ && \
     rm rocksdb.tar.gz && \
     rm -rf /var/lib/apt/lists/*
 
