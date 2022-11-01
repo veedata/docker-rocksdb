@@ -226,13 +226,14 @@ void sendToRocksDB() {
     options.create_if_missing = false;
 
     // Probably useless if condition, but have added it for safety. Thing is.. safety from what?
-    if (nullptr == db_primary) {
+    // if (nullptr == db_primary) {
 
         std::vector<rocksdb::ColumnFamilyDescriptor> column_families;
+        std::vector<rocksdb::ColumnFamilyHandle*> handles;
+        
         for (const auto& cf_name : GetColumnFamilyNames()) {
             column_families.push_back(rocksdb::ColumnFamilyDescriptor(cf_name, options));
         }
-        std::vector<rocksdb::ColumnFamilyHandle*> handles;
 
         s = DB::Open(options, kDBPrimaryPath, column_families, &handles, &db_primary);
         // s = DB::Open(options, kDBPrimaryPath, &db_primary);
@@ -241,7 +242,7 @@ void sendToRocksDB() {
         else
             fprintf(stdout, "[process %ld] DB Open: %s\n", my_pid, s.ToString().c_str());
         assert(s.ok());
-    }
+    // }
 
     // Using wordexp_t to strip at spaces (amongst other things that may be used if we do ldb in the future)
     wordexp_t p;
