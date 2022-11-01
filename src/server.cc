@@ -1,7 +1,6 @@
 // TO DO:
 // 1. Fix the data corruption on receive issue
-// 2. Implement column families addition
-// 3. Setup skeleton for the multi-sync system
+// 2. Setup skeleton for the multi-sync system
 
 
 // Primary db is only meant to deal with put, delete and update. 
@@ -257,7 +256,7 @@ void sendToRocksDB() {
     if ((strcmp(w[0], "put") == 0) || (strcmp(w[0], "update") == 0)) {
         Status s;
         if (p.we_wordc >= 4) 
-            s = db_primary->Put(WriteOptions(), w[1], w[2], w[3]);
+            s = db_primary->Put(WriteOptions(), w[1], w[2], handles[std::atoi(w[3])]);
         else
             s = db_primary->Put(WriteOptions(), w[1], w[2]);
 
