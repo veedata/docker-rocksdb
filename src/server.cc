@@ -228,11 +228,11 @@ void sendToRocksDB() {
     // Probably useless if condition, but have added it for safety. Thing is.. safety from what?
     if (nullptr == db_primary) {
 
-        std::vector<ColumnFamilyDescriptor> column_families;
+        std::vector<rocksdb::ColumnFamilyDescriptor> column_families;
         for (const auto& cf_name : GetColumnFamilyNames()) {
-            column_families.push_back(ColumnFamilyDescriptor(cf_name, options));
+            column_families.push_back(rocksdb::ColumnFamilyDescriptor(cf_name, options));
         }
-        std::vector<ColumnFamilyHandle*> handles;
+        std::vector<rocksdb::ColumnFamilyHandle*> handles;
 
         // s = DB::Open(options, kDBPrimaryPath, column_families, &handles, &db_primary);
         s = DB::Open(options, kDBPrimaryPath, &db_primary);
@@ -329,13 +329,13 @@ void CreateDB() {
         printf("DB Open at: %s", kDBPrimaryPath.c_str());
     assert(s.ok());
 
-    std::vector<ColumnFamilyHandle*> handles;
-    ColumnFamilyOptions cf_opts(options);
+    std::vector<rocksdb::ColumnFamilyHandle*> handles;
+    rocksdb::ColumnFamilyOptions cf_opts(options);
     
     // Initialise all the CFs
     for (const auto& cf_name : GetColumnFamilyNames()) {
         if (ROCKSDB_NAMESPACE::kDefaultColumnFamilyName != cf_name) {
-            ColumnFamilyHandle* handle = nullptr;
+            rocksdb::ColumnFamilyHandle* handle = nullptr;
             s = db->CreateColumnFamily(cf_opts, cf_name, &handle);
             if (!s.ok()) { fprintf(stderr, "[process %ld] Failed to create CF %s: %s\n", my_pid, cf_name.c_str(), s.ToString().c_str()); assert(false); }
             
