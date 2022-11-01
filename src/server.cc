@@ -234,8 +234,8 @@ void sendToRocksDB() {
         }
         std::vector<rocksdb::ColumnFamilyHandle*> handles;
 
-        // s = DB::Open(options, kDBPrimaryPath, column_families, &handles, &db_primary);
-        s = DB::Open(options, kDBPrimaryPath, &db_primary);
+        s = DB::Open(options, kDBPrimaryPath, column_families, &handles, &db_primary);
+        // s = DB::Open(options, kDBPrimaryPath, &db_primary);
         if (!s.ok()) 
             fprintf(stderr, "[process %ld] Failed to open DB: %s\n", my_pid, s.ToString().c_str());
         else
