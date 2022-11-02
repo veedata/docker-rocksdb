@@ -324,11 +324,13 @@ void sendToRocksDB() {
         // To be replaced by a way more complex call in the future.
         // Note: Replacement will probably come in the readData() function
         // primaryCatchUp();
-        Status catch_up = db_secondary->TryCatchUpWithPrimary();
-        if (!catch_up.ok()) {
-            fprintf(stderr, "error while trying to catch up with primary %s\n", catch_up.ToString().c_str());
-            assert(false);
-        }
+        if (p.we_wordc >= 3) {
+            Status catch_up = db_secondary->TryCatchUpWithPrimary(w[2]);
+            if (!catch_up.ok()) {
+                fprintf(stderr, "error while trying to catch up with primary %s\n", catch_up.ToString().c_str());
+                assert(false);
+            }
+        } 
 
         std::string value;
         Status s2 = db_secondary->Get(rocksdb::ReadOptions(), w[1], &value);
