@@ -47,6 +47,7 @@ using ROCKSDB_NAMESPACE::Iterator;
 using ROCKSDB_NAMESPACE::Options;
 using ROCKSDB_NAMESPACE::ReadOptions;
 using ROCKSDB_NAMESPACE::Status;
+using ROCKSDB_NAMESPACE::Slice;
 using ROCKSDB_NAMESPACE::WriteOptions;
 
 
@@ -230,7 +231,7 @@ void sendToRocksDB() {
 
         std::vector<rocksdb::ColumnFamilyDescriptor> column_families;
         std::vector<rocksdb::ColumnFamilyHandle*> handles;
-        
+
         for (const auto& cf_name : GetColumnFamilyNames()) {
             column_families.push_back(rocksdb::ColumnFamilyDescriptor(cf_name, options));
         }
@@ -257,7 +258,7 @@ void sendToRocksDB() {
     if ((strcmp(w[0], "put") == 0) || (strcmp(w[0], "update") == 0)) {
         Status s;
         if (p.we_wordc >= 4) 
-            s = db_primary->Put(WriteOptions(), w[1], w[2], handles[std::atoi(w[3])]);
+            s = db_primary->Put(WriteOptions(), handles[std::atoi(w[3])], w[1], w[2]);
         else
             s = db_primary->Put(WriteOptions(), w[1], w[2]);
 
