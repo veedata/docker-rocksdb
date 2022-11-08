@@ -373,6 +373,7 @@ int main()
 
     // Init steps
     CreateDB();
+    openPrimaryDB();
     StartServer();
 
     // Read from connection
@@ -382,6 +383,7 @@ int main()
         buffer[0] = '\0';
     }
 
+    closePrimaryDB();
     // Close connection
     StopServer();
 
