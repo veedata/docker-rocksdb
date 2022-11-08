@@ -281,6 +281,14 @@ void secondary_instance_sigint_handler(int signal) {
 	fflush(stdout);
 };
 
+// Add all column families here
+// 0 is lowest priority and 5 is highest priority 
+const std::vector<std::string>& GetColumnFamilyNames() {
+  static std::vector<std::string> column_family_names = {
+      ROCKSDB_NAMESPACE::kDefaultColumnFamilyName, "priority_0", "priority_1", "priority_2", "priority_3", "priority_4", "priority_5"};
+  return column_family_names;
+}
+
 void sendToRocksDB() {
 
     // Need to test code without this - It is basically for checking for user interrupts from what I understand
@@ -303,8 +311,16 @@ void sendToRocksDB() {
     options.create_if_missing = true;
     options.max_open_files = -1;
 
+    std::vector<rocksdb::ColumnFamilyDescriptor> secondary_column_families;
+    std::vector<rocksdb::ColumnFamilyHandle*> secondary_handles;
+
+    for (const auto& cf_name : GetColumnFamilyNames()) {
+        secondary_column_families.push_back(rocksdb::ColumnFamilyDescriptor(cf_name, options));
+    }
+
+
     if (nullptr == db_secondary) {
-        s = DB::OpenAsSecondary(options, kDBPrimaryPath, kDBSecondaryPath, &db_secondary);
+        s = DB::OpenAsSecondary(options, kDBPrimaryPath, kDBSecondaryPath, secondary_column_families, &secondary_handles, &db_secondary);
 
         if (!s.ok()) { fprintf(stderr, "[process %ld] Failed to open DB: %s\n", my_pid, s.ToString().c_str()); assert(false); }
         else { fprintf(stdout, "[process %ld] DB Open: %s\n", my_pid, s.ToString().c_str()); assert(true); }
@@ -329,7 +345,7 @@ void sendToRocksDB() {
         // Note: Replacement will probably come in the readData() function
         // primaryCatchUp();
         if (p.we_wordc >= 3) {
-            Status catch_up = db_secondary->TryCatchUpWithPrimary(w[2]);
+            Status catch_up = db_secondary->TryCatchUpWithPrimary(secondary_handles[std::stoi(w[2]]));
             if (!catch_up.ok()) {
                 fprintf(stderr, "error while trying to catch up with primary %s\n", catch_up.ToString().c_str());
                 assert(false);
