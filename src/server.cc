@@ -345,7 +345,7 @@ void sendToRocksDB() {
         // Note: Replacement will probably come in the readData() function
         // primaryCatchUp();
         if (p.we_wordc >= 3) {
-            Status catch_up = db_secondary->TryCatchUpWithPrimary(secondary_handles[std::stoi(w[2]]));
+            Status catch_up = db_secondary->TryCatchUpWithPrimary(secondary_handles[std::stoi(w[2])]);
             if (!catch_up.ok()) {
                 fprintf(stderr, "error while trying to catch up with primary %s\n", catch_up.ToString().c_str());
                 assert(false);
