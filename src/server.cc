@@ -55,6 +55,12 @@ using ROCKSDB_NAMESPACE::WriteOptions;
 const std::string hdfsEnv = "hdfs://172.17.0.5:9000/";
 const std::string kDBPrimaryPath = "primary";
 
+DB* db_primary = nullptr; 
+long my_pid = static_cast<long>(getpid());
+std::vector<rocksdb::ColumnFamilyDescriptor> column_families;
+std::vector<rocksdb::ColumnFamilyHandle*> handles;
+
+
 // Server related variables
 #define PORT 36728      // Primary DB port
 char buffer[1024] = {0};
@@ -212,29 +218,22 @@ const std::vector<std::string>& GetColumnFamilyNames() {
   return column_family_names;
 }
 
-// Parse the buffer and convert it to rocksdb understandable functions and send to RocksDB! 
-void sendToRocksDB() {
-
-    DB* db_primary = nullptr; 
-    long my_pid = static_cast<long>(getpid());
+void openPrimaryDB() {
 
     // Connect to HDFS again and then create the table, this time can have the create_if_missing to false
     std::unique_ptr<rocksdb::Env> hdfs;
     Status s = rocksdb::NewHdfsEnv(hdfsEnv, &hdfs);
 
     if (!s.ok())
-        fprintf(stderr, "[process %ld] Failed to open DB: %s\n", my_pid, s.ToString().c_str());
+        fprintf(stderr, "[process %ld] Failed to open HDFS Env: %s\n", my_pid, s.ToString().c_str());
     assert(s.ok());
 
     Options options;
     options.env = hdfs.get();
     options.create_if_missing = false;
-
+    
     // Probably useless if condition, but have added it for safety. Thing is.. safety from what?
-    // if (nullptr == db_primary) {
-
-        std::vector<rocksdb::ColumnFamilyDescriptor> column_families;
-        std::vector<rocksdb::ColumnFamilyHandle*> handles;
+    if (nullptr == db_primary) {
 
         for (const auto& cf_name : GetColumnFamilyNames()) {
             column_families.push_back(rocksdb::ColumnFamilyDescriptor(cf_name, options));
@@ -247,7 +246,11 @@ void sendToRocksDB() {
         else
             fprintf(stdout, "[process %ld] DB Open: %s\n", my_pid, s.ToString().c_str());
         assert(s.ok());
-    // }
+    }
+}
+
+// Parse the buffer and convert it to rocksdb understandable functions and send to RocksDB! 
+void sendToRocksDB() {
 
     // Using wordexp_t to strip at spaces (amongst other things that may be used if we do ldb in the future)
     wordexp_t p;
@@ -283,14 +286,19 @@ void sendToRocksDB() {
         std::cout << "Input error, ignoring input" << std::endl;
     }
 
+    wordfree(&p);
+}
+
+void flushPrimaryDB() {
     Status flus = db_primary->Flush(FlushOptions());
     if (!flus.ok()) {
         fprintf(stderr, "Failed to flush DB: %s\n", flus.ToString().c_str());
         assert(false);
     }
+}
 
-    wordfree(&p);
-
+void closePrimaryDB() {
+    
     if (nullptr != db_primary) {
 
         // Remove Column Families
