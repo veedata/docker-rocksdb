@@ -261,7 +261,7 @@ void writeToCsv(std::string csv_op, std::string csv_key, std::string csv_val, st
     std::string mlbc_line = "";
     auto time_now = std::chrono::system_clock::now();
     std::time_t day_date = std::chrono::system_clock::to_time_t(time_now);
-    std::string csv_day_date = std::ctime(&day_date);
+    std::string csv_day_date = std::strtok(std::ctime(&day_date), "\n");
 
     mlbc_line += csv_op + ",";
     mlbc_line += csv_key + ",";
