@@ -294,12 +294,14 @@ void sendToRocksDB() {
 
     if ((strcmp(w[0], "put") == 0) || (strcmp(w[0], "update") == 0)) {
         Status s;
-        if (p.we_wordc >= 4) 
+        if (p.we_wordc >= 4) {
             s = db_primary->Put(WriteOptions(), handles[std::atoi(w[3])], w[1], w[2]);
             std::string csv_client = w[4];
-        else
+        }
+        else {
             s = db_primary->Put(WriteOptions(), w[1], w[2]);
             std::string csv_client = w[3];
+        }
 
         if (s.ok())
             std::cout << "Inserted key-value pair: " << w[1] << " " << w[2] << std::endl;
