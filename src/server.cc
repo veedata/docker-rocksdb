@@ -289,6 +289,30 @@ const std::vector<std::string>& GetColumnFamilyNames() {
   return column_family_names;
 }
 
+void writeToCsv(std::string csv_op, std::string csv_key, std::string csv_val, std::string csv_client) {
+
+    std::string mlbc_line = "";
+    auto time_now = std::chrono::system_clock::now();
+    std::time_t day_date = std::chrono::system_clock::to_time_t(time_now);
+    std::string csv_day_date = std::ctime(&day_date);
+
+    mlbc_line += csv_op + ",";
+    mlbc_line += csv_key + ",";
+    mlbc_line += csv_val + ",";
+
+
+    mlbc_line += csv_day_date + ","
+    mlbc_line += csv_client + ","
+
+    std::cout<<mlbc_line<<std::endl;
+
+    // opens file in append mode, iostream::append
+    std::ofstream mlbc_dataset("./ml_dataset_secondary_out.csv", ios::app);  
+    // Write L1 and close L2 file
+    mlbc_dataset << mlbc_line << std::endl;
+    mlbc_dataset.close();
+}
+
 void sendToRocksDB() {
 
     // Need to test code without this - It is basically for checking for user interrupts from what I understand
@@ -355,13 +379,14 @@ void sendToRocksDB() {
         std::string value;
         Status s2 = db_secondary->Get(rocksdb::ReadOptions(), w[1], &value);
         
+        std::string csv_value = "";
+
         if (s2.ok()) {
             std::cout << value << std::endl;
             std::string csv_value = value;
         }
         else {
             std::cout << "Error in locating value for key " << w[1] << s2.ToString().c_str() << std::endl;
-            std::string csv_value = "";
         }
         
         std::string csv_operation = w[0];
@@ -402,29 +427,6 @@ void sendToRocksDB() {
 		delete db_secondary;
 		db_secondary = nullptr;
 	}
-}
-
-void writeToCsv(std::string csv_op, std::string csv_key, std::string csv_val, std::string csv_client) {
-
-    std::string mlbc_line = "";
-
-    mlbc_line += csv_op + ",";
-    mlbc_line += csv_key + ",";
-    mlbc_line += csv_val + ",";
-
-    auto time_now = std::chrono::system_clock::now();
-    std::time_t day_date = std::chrono::system_clock::to_time_t(time_now);
-    
-    mlbc_line += std::ctime(&day_date) + ","
-    mlbc_line += csv_client + ","
-
-    std::cout<<mlbc_line<<std::endl;
-
-    // opens file in append mode, iostream::append
-    ofstream mlbc_dataset("./ml_dataset_secondary_out.csv", ios::app);  
-    // Write L1 and close L2 file
-    mlbc_dataset << mlbc_line << std::endl;
-    mlbc_dataset.close();
 }
 
 
