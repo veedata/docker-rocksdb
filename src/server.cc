@@ -355,10 +355,20 @@ void sendToRocksDB() {
         std::string value;
         Status s2 = db_secondary->Get(rocksdb::ReadOptions(), w[1], &value);
         
-        if (s2.ok())
+        if (s2.ok()) {
             std::cout << value << std::endl;
-        else
+            std::string csv_value = value;
+        }
+        else {
             std::cout << "Error in locating value for key " << w[1] << s2.ToString().c_str() << std::endl;
+            std::string csv_value = "";
+        }
+        
+        std::string csv_operation = w[0];
+        std::string csv_key = w[1];
+        std::string csv_client = w[3];
+
+        writeToCsv(csv_operation, csv_key, csv_value, csv_client);
     }
     else if (strcmp(w[0], "scan") == 0) {
         rocksdb::Iterator *it = db_secondary->NewIterator(ReadOptions());
@@ -367,8 +377,15 @@ void sendToRocksDB() {
 		for (it->SeekToFirst(); it->Valid(); it->Next()) {
 			count++;
             std::cout << it->key().ToString() << std::endl;
+
+            std::string csv_operation = w[0];
+            std::string csv_key = it->key().ToString();
+            std::string csv_client = w[3];
+            std::string csv_value = it->value().ToString();
+
+            writeToCsv(csv_operation, csv_key, csv_value, csv_client);
 		}
-		
+
 		fprintf(stdout, "Observed %i keys\n", count); 
     }
     else if ((strcmp(w[0], "put") == 0) || (strcmp(w[0], "update") == 0) || (strcmp(w[0], "delete") == 0)) {
@@ -385,6 +402,29 @@ void sendToRocksDB() {
 		delete db_secondary;
 		db_secondary = nullptr;
 	}
+}
+
+void writeToCsv(std::string csv_op, std::string csv_key, std::string csv_val, std::string csv_client) {
+
+    std::string mlbc_line = "";
+
+    mlbc_line += csv_op + ",";
+    mlbc_line += csv_key + ",";
+    mlbc_line += csv_val + ",";
+
+    auto time_now = std::chrono::system_clock::now();
+    std::time_t day_date = std::chrono::system_clock::to_time_t(time_now);
+    
+    mlbc_line += std::ctime(&day_date) + ","
+    mlbc_line += csv_client + ","
+
+    std::cout<<mlbc_line<<std::endl;
+
+    // opens file in append mode, iostream::append
+    ofstream mlbc_dataset("./ml_dataset_secondary_out.csv", ios::app);  
+    // Write L1 and close L2 file
+    mlbc_dataset << mlbc_line << std::endl;
+    mlbc_dataset.close();
 }
 
 
