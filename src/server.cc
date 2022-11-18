@@ -32,6 +32,7 @@
 // For csv
 #include <chrono>
 #include <ctime>
+#include <fstream>
 
 
 // Declaring Functions
@@ -253,6 +254,31 @@ void openPrimaryDB() {
     }
 }
 
+
+
+void writeToCsv(std::string csv_op, std::string csv_key, std::string csv_val, std::string csv_client) {
+
+    std::string mlbc_line = "";
+    auto time_now = std::chrono::system_clock::now();
+    std::time_t day_date = std::chrono::system_clock::to_time_t(time_now);
+    std::string csv_day_date = std::ctime(&day_date);
+
+    mlbc_line += csv_op + ",";
+    mlbc_line += csv_key + ",";
+    mlbc_line += csv_val + ",";
+    mlbc_line += csv_day_date + ",";
+    mlbc_line += csv_client + ",";
+
+    std::cout<<mlbc_line<<std::endl;
+
+    // opens file in append mode, iostream::append
+    std::ofstream mlbc_dataset("./ml_dataset_primary_out.csv", std::ios::app);  
+    // Write and close file
+    mlbc_dataset << mlbc_line << std::endl;
+    mlbc_dataset.close();
+}
+
+
 // Parse the buffer and convert it to rocksdb understandable functions and send to RocksDB! 
 void sendToRocksDB() {
 
@@ -306,30 +332,6 @@ void sendToRocksDB() {
     }
 
     wordfree(&p);
-}
-
-
-void writeToCsv(std::string csv_op, std::string csv_key, std::string csv_val, std::string csv_client) {
-
-    std::string mlbc_line = "";
-
-    mlbc_line += csv_op + ",";
-    mlbc_line += csv_key + ",";
-    mlbc_line += csv_val + ",";
-
-    auto time_now = std::chrono::system_clock::now();
-    std::time_t day_date = std::chrono::system_clock::to_time_t(time_now);
-    
-    mlbc_line += std::ctime(&day_date) + ","
-    mlbc_line += csv_client + ","
-
-    std::cout<<mlbc_line<<std::endl;
-
-    // opens file in append mode, iostream::append
-    ofstream mlbc_dataset("./ml_dataset_primary_out.csv", ios::app);  
-    // Write L1 and close L2 file
-    mlbc_dataset << mlbc_line << std::endl;
-    mlbc_dataset.close();
 }
 
 
