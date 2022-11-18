@@ -294,13 +294,15 @@ void sendToRocksDB() {
 
     if ((strcmp(w[0], "put") == 0) || (strcmp(w[0], "update") == 0)) {
         Status s;
+        std::string csv_client = "";
+
         if (p.we_wordc >= 4) {
             s = db_primary->Put(WriteOptions(), handles[std::atoi(w[3])], w[1], w[2]);
-            std::string csv_client = w[4];
+            csv_client = w[4];
         }
         else {
             s = db_primary->Put(WriteOptions(), w[1], w[2]);
-            std::string csv_client = w[3];
+            csv_client = w[3];
         }
 
         if (s.ok())
