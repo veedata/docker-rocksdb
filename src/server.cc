@@ -29,6 +29,10 @@
 #include <wordexp.h>
 #include <arpa/inet.h>
 
+// For csv
+#include <chrono>
+#include <ctime>
+
 
 // Declaring Functions
 int StartServer();
@@ -266,13 +270,21 @@ void sendToRocksDB() {
         Status s;
         if (p.we_wordc >= 4) 
             s = db_primary->Put(WriteOptions(), handles[std::atoi(w[3])], w[1], w[2]);
+            std::string csv_client = w[4];
         else
             s = db_primary->Put(WriteOptions(), w[1], w[2]);
+            std::string csv_client = w[3];
 
         if (s.ok())
             std::cout << "Inserted key-value pair: " << w[1] << " " << w[2] << std::endl;
         else
-            std::cout << "Error in inserting key and value " << w[1] << " " << w[2] << std::endl; 
+            std::cout << "Error in inserting key and value " << w[1] << " " << w[2] << std::endl;
+
+        std::string csv_operation = w[0];
+        std::string csv_key = w[1];
+        std::string csv_value = w[2];
+
+        writeToCsv(csv_operation, csv_key, csv_value, csv_client);
     }
     else if (strcmp(w[0], "delete") == 0) {
         Status del = db_primary->SingleDelete(rocksdb::WriteOptions(), w[1]);
@@ -281,6 +293,13 @@ void sendToRocksDB() {
             std::cout << "Deleted key " << w[1] << std::endl;
         else
             std::cout << "Error in deleting key " << w[1] << std::endl;
+
+        std::string csv_operation = w[0];
+        std::string csv_key = w[1];
+        std::string csv_value = "";
+        std::string csv_client = w[4];
+
+        writeToCsv(csv_operation, csv_key, csv_value, csv_client);
     }
     else {
         std::cout << "Input error, ignoring input" << std::endl;
@@ -288,6 +307,31 @@ void sendToRocksDB() {
 
     wordfree(&p);
 }
+
+
+void writeToCsv(std::string csv_op, std::string csv_key, std::string csv_val, std::string csv_client) {
+
+    std::string mlbc_line = "";
+
+    mlbc_line += csv_op + ",";
+    mlbc_line += csv_key + ",";
+    mlbc_line += csv_val + ",";
+
+    auto time_now = std::chrono::system_clock::now();
+    std::time_t day_date = std::chrono::system_clock::to_time_t(time_now);
+    
+    mlbc_line += std::ctime(&day_date) + ","
+    mlbc_line += csv_client + ","
+
+    std::cout<<mlbc_line<<std::endl;
+
+    // opens file in append mode, iostream::append
+    ofstream mlbc_dataset("./ml_dataset_primary_out.csv", ios::app);  
+    // Write L1 and close L2 file
+    mlbc_dataset << mlbc_line << std::endl;
+    mlbc_dataset.close();
+}
+
 
 void flushPrimaryDB() {
     Status flus = db_primary->Flush(FlushOptions());
