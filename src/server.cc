@@ -299,15 +299,13 @@ void writeToCsv(std::string csv_op, std::string csv_key, std::string csv_val, st
     mlbc_line += csv_op + ",";
     mlbc_line += csv_key + ",";
     mlbc_line += csv_val + ",";
-
-
-    mlbc_line += csv_day_date + ","
-    mlbc_line += csv_client + ","
+    mlbc_line += csv_day_date + ",";
+    mlbc_line += csv_client + ",";
 
     std::cout<<mlbc_line<<std::endl;
 
     // opens file in append mode, iostream::append
-    std::ofstream mlbc_dataset("./ml_dataset_secondary_out.csv", ios::app);  
+    std::ofstream mlbc_dataset("./ml_dataset_secondary_out.csv", std::ios::app);  
     // Write L1 and close L2 file
     mlbc_dataset << mlbc_line << std::endl;
     mlbc_dataset.close();
