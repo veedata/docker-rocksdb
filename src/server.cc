@@ -272,7 +272,7 @@ void writeToCsv(std::string csv_op, std::string csv_key, std::string csv_val, st
     mlbc_line += csv_day_date + ",";
     mlbc_line += csv_client + ",";
 
-    std::cout<<mlbc_line<<std::endl;
+    // std::cout<<mlbc_line<<std::endl;
 
     // opens file in append mode, iostream::append
     std::ofstream mlbc_dataset("./ml_dataset_primary_out.csv", std::ios::app);  
@@ -309,7 +309,8 @@ void sendToRocksDB() {
         }
 
         if (s.ok())
-            std::cout << "Inserted key-value pair: " << w[1] << " " << w[2] << std::endl;
+            ;
+            // std::cout << "Inserted key-value pair: " << w[1] << " " << w[2] << std::endl;
         else
             std::cout << "Error in inserting key and value " << w[1] << " " << w[2] << std::endl;
 
@@ -323,7 +324,8 @@ void sendToRocksDB() {
         Status del = db_primary->SingleDelete(rocksdb::WriteOptions(), w[1]);
 
         if (del.ok())
-            std::cout << "Deleted key " << w[1] << std::endl;
+            ;
+            // std::cout << "Deleted key " << w[1] << std::endl;
         else
             std::cout << "Error in deleting key " << w[1] << std::endl;
 
