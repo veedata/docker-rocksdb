@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
+#include <string.h>
 #include <iostream>
 #include <sys/time.h>
 
@@ -261,7 +262,9 @@ void writeToCsv(std::string csv_op, std::string csv_key, std::string csv_val, st
     std::string mlbc_line = "";
     auto time_now = std::chrono::system_clock::now();
     std::time_t day_date = std::chrono::system_clock::to_time_t(time_now);
-    std::string csv_day_date = std::strtok(std::ctime(&day_date), "\n");
+    char *csv_day_date_temp = std::ctime(&day_date);
+    csv_day_date_temp[strcspn(t, "\r\n")] = '\0';
+    std::string csv_day_date = csv_day_date_temp;
 
     mlbc_line += csv_op + ",";
     mlbc_line += csv_key + ",";
