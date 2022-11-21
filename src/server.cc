@@ -400,7 +400,7 @@ void sendToRocksDB() {
         std::string csv_key = w[1];
         std::string csv_client = w[3];
 
-        writeToCsv(csv_operation, csv_key, csv_value, csv_client);
+        // writeToCsv(csv_operation, csv_key, csv_value, csv_client);
     }
     else if (strcmp(w[0], "scan") == 0) {
         rocksdb::Iterator *it = db_secondary->NewIterator(ReadOptions());
@@ -415,7 +415,7 @@ void sendToRocksDB() {
             std::string csv_client = w[3];
             std::string csv_value = it->value().ToString();
 
-            writeToCsv(csv_operation, csv_key, csv_value, csv_client);
+            // writeToCsv(csv_operation, csv_key, csv_value, csv_client);
 		}
 
 		fprintf(stdout, "Observed %i keys\n", count); 
