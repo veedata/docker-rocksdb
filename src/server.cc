@@ -301,7 +301,7 @@ void writeToCsv(std::string csv_op, std::string csv_key, std::string csv_val, st
     auto time_now = std::chrono::system_clock::now();
     std::time_t day_date = std::chrono::system_clock::to_time_t(time_now);
     char *csv_day_date_temp = std::ctime(&day_date);
-    csv_day_date_temp[strcspn(t, "\r\n")] = '\0';
+    csv_day_date_temp[strcspn(csv_day_date_temp, "\r\n")] = '\0';
     std::string csv_day_date = csv_day_date_temp;
 
     mlbc_line += csv_op + ",";
