@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
+#include <string.h>
 #include <iostream>
 #include <sys/time.h>
 
@@ -299,7 +300,9 @@ void writeToCsv(std::string csv_op, std::string csv_key, std::string csv_val, st
     std::string mlbc_line = "";
     auto time_now = std::chrono::system_clock::now();
     std::time_t day_date = std::chrono::system_clock::to_time_t(time_now);
-    std::string csv_day_date = std::ctime(&day_date);
+    char *csv_day_date_temp = std::ctime(&day_date);
+    csv_day_date_temp[strcspn(t, "\r\n")] = '\0';
+    std::string csv_day_date = csv_day_date_temp;
 
     mlbc_line += csv_op + ",";
     mlbc_line += csv_key + ",";
@@ -307,7 +310,7 @@ void writeToCsv(std::string csv_op, std::string csv_key, std::string csv_val, st
     mlbc_line += csv_day_date + ",";
     mlbc_line += csv_client + ",";
 
-    std::cout<<mlbc_line<<std::endl;
+    // std::cout<<mlbc_line<<std::endl;
 
     // opens file in append mode, iostream::append
     std::ofstream mlbc_dataset("./ml_dataset_secondary_out.csv", std::ios::app);  
@@ -385,7 +388,8 @@ void sendToRocksDB() {
         std::string csv_value = "";
 
         if (s2.ok()) {
-            std::cout << value << std::endl;
+            // std::cout << value << std::endl;
+            ;
             std::string csv_value = value;
         }
         else {
@@ -404,7 +408,7 @@ void sendToRocksDB() {
 
 		for (it->SeekToFirst(); it->Valid(); it->Next()) {
 			count++;
-            std::cout << it->key().ToString() << std::endl;
+            // std::cout << it->key().ToString() << std::endl;
 
             std::string csv_operation = w[0];
             std::string csv_key = it->key().ToString();
@@ -417,7 +421,7 @@ void sendToRocksDB() {
 		fprintf(stdout, "Observed %i keys\n", count); 
     }
     else if ((strcmp(w[0], "put") == 0) || (strcmp(w[0], "update") == 0) || (strcmp(w[0], "delete") == 0)) {
-        std::cout << "Sending to PrimaryDB" << std::endl;
+        // std::cout << "Sending to PrimaryDB" << std::endl;
         sendToPrimaryDB();
     }
     else {
