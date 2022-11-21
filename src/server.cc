@@ -318,7 +318,7 @@ void sendToRocksDB() {
         std::string csv_key = w[1];
         std::string csv_value = w[2];
 
-        writeToCsv(csv_operation, csv_key, csv_value, csv_client);
+        // writeToCsv(csv_operation, csv_key, csv_value, csv_client);
     }
     else if (strcmp(w[0], "delete") == 0) {
         Status del = db_primary->SingleDelete(rocksdb::WriteOptions(), w[1]);
@@ -334,7 +334,7 @@ void sendToRocksDB() {
         std::string csv_value = "";
         std::string csv_client = w[4];
 
-        writeToCsv(csv_operation, csv_key, csv_value, csv_client);
+        // writeToCsv(csv_operation, csv_key, csv_value, csv_client);
     }
     else {
         std::cout << "Input error, ignoring input" << std::endl;
