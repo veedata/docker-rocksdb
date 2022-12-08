@@ -388,9 +388,9 @@ void CreateDB() {
     Options options;
     options.env = hdfs.get();
 
-    Status s = ROCKSDB_NAMESPACE::DestroyDB(kDBPrimaryPath, options);
-    if (!s.ok()) {
-        fprintf(stderr, "[process %ld] Failed to destroy DB: %s\n", my_pid, s.ToString().c_str());
+    Status deldb = ROCKSDB_NAMESPACE::DestroyDB(kDBPrimaryPath, options);
+    if (!deldb.ok()) {
+        fprintf(stderr, "[process %ld] Failed to destroy DB: %s\n", my_pid, deldb.ToString().c_str());
         assert(false);
     }
 
@@ -433,7 +433,6 @@ int main()
 {
 
     // Init steps
-    DeleteDB();
     CreateDB();
     openPrimaryDB();
     StartServer();
