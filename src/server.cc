@@ -387,9 +387,15 @@ void CreateDB() {
 
     Options options;
     options.env = hdfs.get();
-    options.create_if_missing = true;
+
+    Status s = ROCKSDB_NAMESPACE::DestroyDB(kDBPrimaryPath, options);
+    if (!s.ok()) {
+        fprintf(stderr, "[process %ld] Failed to destroy DB: %s\n", my_pid, s.ToString().c_str());
+        assert(false);
+    }
 
     // Open the DB
+    options.create_if_missing = true;
     s = DB::Open(options, kDBPrimaryPath, &db);
 
     if (!s.ok())
@@ -427,6 +433,7 @@ int main()
 {
 
     // Init steps
+    DeleteDB();
     CreateDB();
     openPrimaryDB();
     StartServer();
