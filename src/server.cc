@@ -159,7 +159,7 @@ int CheckConnections() {
         }
 
         // inform user of socket number - used in send and receive commands 
-        // printf("New connection , socket fd is %d , ip is : %s , port : %d\n" , new_socket , inet_ntoa(address.sin_addr) , ntohs(address.sin_port));
+        printf("New connection , socket fd is %d , ip is : %s , port : %d\n" , new_socket , inet_ntoa(address.sin_addr) , ntohs(address.sin_port));
 
         //add new socket to array of sockets 
         for (i = 0; i < max_clients; i++) {  
@@ -311,7 +311,7 @@ void sendToRocksDB() {
 
         if (s.ok())
             ;
-            // std::cout << "Inserted key-value pair: " << w[1] << " " << w[2] << std::endl;
+            std::cout << "Inserted key-value pair: " << w[1] << " " << w[2] << std::endl;
         else
             std::cout << "Error in inserting key and value " << w[1] << " " << w[2] << std::endl;
 
