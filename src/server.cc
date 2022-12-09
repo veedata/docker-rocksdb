@@ -147,7 +147,7 @@ int CheckConnections() {
     activity = select( max_sd + 1 , &readfds , NULL , NULL , NULL);  
 
     if ((activity < 0) && (errno!=EINTR)) {  
-        printf("select error");
+        fprintf(stdout, "select error");
     }
 
     // If something happened on the master socket, then its an incoming connection 
@@ -159,7 +159,7 @@ int CheckConnections() {
         }
 
         // inform user of socket number - used in send and receive commands 
-        printf("New connection , socket fd is %d , ip is : %s , port : %d\n" , new_socket , inet_ntoa(address.sin_addr) , ntohs(address.sin_port));
+        fprintf(stdout, "New connection , socket fd is %d , ip is : %s , port : %d\n" , new_socket , inet_ntoa(address.sin_addr) , ntohs(address.sin_port));
 
         //add new socket to array of sockets 
         for (i = 0; i < max_clients; i++) {  
@@ -192,7 +192,7 @@ int CheckConnections() {
             }    
             //Echo back the message that came in 
             else {
-                printf("Received: %s", buffer);
+                fprintf(stdout, "Received: %s\n", buffer);
                 sendToRocksDB();
                 //set the string terminating NULL byte on the end of the data read 
                 buffer[valread] = '\0';
