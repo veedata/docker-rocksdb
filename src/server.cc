@@ -310,7 +310,7 @@ void sendToRocksDB() {
         }
 
         if (s.ok())
-            ;
+            // ;
             std::cout << "Inserted key-value pair: " << w[1] << " " << w[2] << std::endl;
         else
             std::cout << "Error in inserting key and value " << w[1] << " " << w[2] << std::endl;
