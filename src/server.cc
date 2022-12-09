@@ -400,7 +400,7 @@ void CreateDB() {
     
     // Open the DB
     std::unique_ptr<rocksdb::Env> hdfs;
-    s = rocksdb::NewHdfsEnv(hdfsEnv, &hdfs);
+    Status s = rocksdb::NewHdfsEnv(hdfsEnv, &hdfs);
     
     if (!s.ok()) 
         fprintf(stderr, "[process %ld] Failed to open HDFS env: %s\n", my_pid, s.ToString().c_str());
