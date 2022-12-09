@@ -375,24 +375,24 @@ void CreateDB() {
     long my_pid = static_cast<long>(getpid());
 
     // To connect to the HDFS environment
-    std::unique_ptr<rocksdb::Env> del_hdfs;
-    Status s = rocksdb::NewHdfsEnv(hdfsEnv, &del_hdfs);
+    // std::unique_ptr<rocksdb::Env> del_hdfs;
+    // Status s = rocksdb::NewHdfsEnv(hdfsEnv, &del_hdfs);
     
-    if (!s.ok()) 
-        fprintf(stderr, "[process %ld] Failed to open HDFS env: %s\n", my_pid, s.ToString().c_str());
-    else 
-        printf("Opened HDFS env");
+    // if (!s.ok()) 
+    //     fprintf(stderr, "[process %ld] Failed to open HDFS env: %s\n", my_pid, s.ToString().c_str());
+    // else 
+    //     printf("Opened HDFS env");
 
-    assert(s.ok());
+    // assert(s.ok());
 
-    Options del_options;
-    del_options.env = del_hdfs.get();
+    // Options del_options;
+    // del_options.env = del_hdfs.get();
 
-    Status deldb = ROCKSDB_NAMESPACE::DestroyDB(kDBPrimaryPath, del_options);
-    if (!deldb.ok()) {
-        fprintf(stderr, "[process %ld] Failed to destroy DB: %s\n", my_pid, deldb.ToString().c_str());
-        assert(false);
-    }
+    // Status deldb = ROCKSDB_NAMESPACE::DestroyDB(kDBPrimaryPath, del_options);
+    // if (!deldb.ok()) {
+    //     fprintf(stderr, "[process %ld] Failed to destroy DB: %s\n", my_pid, deldb.ToString().c_str());
+    //     assert(false);
+    // }
 
 
 
