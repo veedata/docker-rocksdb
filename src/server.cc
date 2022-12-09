@@ -159,14 +159,14 @@ int CheckConnections() {
         }
 
         // inform user of socket number - used in send and receive commands 
-        printf("New connection , socket fd is %d , ip is : %s , port : %d\n" , new_socket , inet_ntoa(address.sin_addr) , ntohs(address.sin_port));
+        // printf("New connection , socket fd is %d , ip is : %s , port : %d\n" , new_socket , inet_ntoa(address.sin_addr) , ntohs(address.sin_port));
 
         //add new socket to array of sockets 
         for (i = 0; i < max_clients; i++) {  
             //if position is empty 
             if( client_socket[i] == 0 ) {
                 client_socket[i] = new_socket;  
-                printf("Adding to list of sockets as %d\n" , i);
+                // printf("Adding to list of sockets as %d\n" , i);
                 break;
             }
         }
@@ -184,7 +184,7 @@ int CheckConnections() {
 
                 //Somebody disconnected , get his details and print 
                 getpeername(sd , (struct sockaddr*)&address , (socklen_t*)&addrlen);  
-                printf("Host disconnected , ip %s , port %d \n", inet_ntoa(address.sin_addr) , ntohs(address.sin_port));  
+                // printf("Host disconnected , ip %s , port %d \n", inet_ntoa(address.sin_addr) , ntohs(address.sin_port));  
 
                 //Close the socket and mark as 0 in list for reuse 
                 close( sd );  
@@ -192,6 +192,7 @@ int CheckConnections() {
             }    
             //Echo back the message that came in 
             else {
+                printf(buffer);
                 sendToRocksDB();
                 //set the string terminating NULL byte on the end of the data read 
                 buffer[valread] = '\0';
