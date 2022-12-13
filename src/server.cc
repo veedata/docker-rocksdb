@@ -192,7 +192,8 @@ int CheckConnections() {
             }    
             //Echo back the message that came in 
             else {
-                fprintf(stdout, "Received: %s\n", buffer);
+                std::cout << "Received: " << buffer << std::endl;
+                // fprintf(stdout, "Received: %s\n", buffer);
                 sendToRocksDB();
                 //set the string terminating NULL byte on the end of the data read 
                 buffer[valread] = '\0';
