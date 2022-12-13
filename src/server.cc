@@ -205,6 +205,7 @@ int CheckConnections() {
             }    
             //Echo back the message that came in 
             else {
+                printf("\nReceived from client: %s", buffer);
                 sendToRocksDB();
                 //set the string terminating NULL byte on the end of the data read 
                 buffer[valread] = '\0';
