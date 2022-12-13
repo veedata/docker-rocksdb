@@ -121,12 +121,6 @@ int StartServer() {
     // Accept the incoming connection 
     addrlen = sizeof(address);
     puts("Server Started!");
-    puts("Waiting for connections...");
-
-    return 0;
-}
-
-int CheckConnections() {
 
     //clear the socket set 
     FD_ZERO(&readfds);  
@@ -149,6 +143,13 @@ int CheckConnections() {
             max_sd = sd;
     }
 
+    puts("Waiting for connections...");
+
+    return 0;
+}
+
+int CheckConnections() {
+
     //wait for an activity on one of the sockets , timeout is NULL , 
     //so wait indefinitely 
     activity = select( max_sd + 1 , &readfds , NULL , NULL , NULL);  
@@ -168,7 +169,7 @@ int CheckConnections() {
         // inform user of socket number - used in send and receive commands 
         printf("New connection , socket fd is %d , ip is : %s , port : %d\n" , new_socket , inet_ntoa(address.sin_addr) , ntohs(address.sin_port));
 
-        //send new connection greeting message 
+        // send new connection greeting message 
         // if (send(new_socket, message, strlen(message), 0) != strlen(message)) {  
         //     perror("send");  
         // }  
@@ -262,10 +263,13 @@ int connectToPrimaryDB() {
 
 
 void sendToPrimaryDB() {
-    connectToPrimaryDB();
-    printf("Sending %s to PrimaryDB", buffer);
-    send(primarydb_sock, buffer, strlen(buffer), 0);
-    disconnectPrimaryDB();
+    // connectToPrimaryDB();
+    printf("\nSending %s to PrimaryDB", buffer);
+    int send_res = send(primarydb_sock, buffer, strlen(buffer), 0);
+    if (send_res == -1){
+        printf("\nError sending to primaryDB", buffer);
+    }
+    // disconnectPrimaryDB();
 }
 
 
