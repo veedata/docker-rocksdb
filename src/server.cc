@@ -262,10 +262,10 @@ int connectToPrimaryDB() {
 
 
 void sendToPrimaryDB() {
-    // connectToPrimaryDB();
+    connectToPrimaryDB();
     printf("Sending %s to PrimaryDB", buffer);
     send(primarydb_sock, buffer, strlen(buffer), 0);
-    // disconnectPrimaryDB();
+    disconnectPrimaryDB();
 }
 
 
