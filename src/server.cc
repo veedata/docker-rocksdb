@@ -150,8 +150,8 @@ int StartServer() {
 
 int CheckConnections() {
 
-    //wait for an activity on one of the sockets , timeout is NULL , 
-    //so wait indefinitely 
+    // wait for an activity on one of the sockets , timeout is NULL , 
+    // so wait indefinitely 
     activity = select( max_sd + 1 , &readfds , NULL , NULL , NULL);  
 
     if ((activity < 0) && (errno!=EINTR)) {  
@@ -268,7 +268,7 @@ void sendToPrimaryDB() {
     printf("\nSending %s to PrimaryDB", buffer);
     int send_res = send(primarydb_sock, buffer, strlen(buffer), 0);
     if (send_res == -1){
-        printf("\nError sending to primaryDB", buffer);
+        printf("\nError sending to primaryDB");
     }
     // disconnectPrimaryDB();
 }
@@ -486,8 +486,8 @@ int main() {
     // Init steps
     // connectToPrimaryDB();
     CreateDB();
-    StartServer();
     connectToPrimaryDB();
+    StartServer();
 
     // Read from connection
     while (true)
