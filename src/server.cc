@@ -212,8 +212,8 @@ int CheckConnections() {
                 send(sd , buffer , strlen(buffer) , 0 );  
                 
                 //Close the socket and mark as 0 in list for reuse
-                close (sd);
-                client_socket[i] = 0;  
+                // close (sd);
+                // client_socket[i] = 0;  
             }  
         }
     }
