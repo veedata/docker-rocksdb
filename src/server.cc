@@ -65,6 +65,7 @@ using ROCKSDB_NAMESPACE::ReadOptions;
 using ROCKSDB_NAMESPACE::Status;
 using ROCKSDB_NAMESPACE::WriteOptions;
 
+using message_size_t = uint64_t;
 
 
 const std::string hdfsEnv = "hdfs://172.17.0.5:9000/";
@@ -134,6 +135,28 @@ int StartServer() {
     return 0;
 }
 
+void read_bytes_internal(int sockfd, void * where, size_t size)
+{
+    auto remaining = size;
+
+    while (remaining > 0) {
+        // check error here
+        auto just_read = recv(sockfd, where, remaining);
+        remaining -= just_read;
+    }
+} 
+
+std::string read_message(int sockfd)
+{
+    message_size_t message_size{ 0 };
+    read_bytes_internal(sockfd, &message_size, sizeof(message_size));
+
+    std::string result{ message_size, 0 };
+    read_bytes_internal(sockfd, &result[0], message_size);
+
+    return result;
+}
+
 int CheckConnections() {
 
     //add child sockets to set 
@@ -193,7 +216,8 @@ int CheckConnections() {
         if (FD_ISSET( sd , &readfds)) {
 
             // Check if it was for closing , and also read the incoming message 
-            if ((valread = read(sd, buffer, sizeof(buffer)-1)) == 0) {
+            // if ((valread = read(sd, buffer, sizeof(buffer)-1)) == 0) {
+            if ((buffer = read_message(sd)) == 0) {
 
                 //Somebody disconnected , get his details and print 
                 getpeername(sd , (struct sockaddr*)&address , (socklen_t*)&addrlen);  
@@ -208,7 +232,7 @@ int CheckConnections() {
                 printf("\nReceived from client: %s", buffer);
                 sendToRocksDB();
                 //set the string terminating NULL byte on the end of the data read 
-                buffer[valread] = '\0';
+                buffer = '\0';
                 send(sd , buffer , strlen(buffer) , 0 );  
                 
                 //Close the socket and mark as 0 in list for reuse
