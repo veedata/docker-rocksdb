@@ -77,6 +77,7 @@ const std::string kDBSecondaryPath = getSecondaryDBAddr();
 
 DB *db_primary = nullptr;
 char buffer[1024] = {0};
+char out_char[1] = {0}
 int new_socket, master_socket, addrlen, client_socket[10], max_clients = 10, activity, i, valread, sd, max_sd;
 struct sockaddr_in address;
 int primarydb_sock = 0;
@@ -217,11 +218,16 @@ int CheckConnections() {
                 
         if (FD_ISSET( sd , &readfds)) {
 
+            while (strcmp(read(sd, out_char, 1), "\0") != 0) {
+                strcat(buffer, out_char);
+            } 
+
             // Check if it was for closing , and also read the incoming message 
             // if ((valread = read(sd, buffer, sizeof(buffer)-1)) == 0) {
-            read_message(sd);
+            // read_message(sd);
+            // if (strcmp(buffer, "disco") == 0) {
             if (strcmp(buffer, "disco") == 0) {
-
+                
                 //Somebody disconnected , get his details and print 
                 getpeername(sd , (struct sockaddr*)&address , (socklen_t*)&addrlen);  
                 printf("Host disconnected , ip %s , port %d \n", inet_ntoa(address.sin_addr) , ntohs(address.sin_port));  
@@ -236,7 +242,8 @@ int CheckConnections() {
                 sendToRocksDB();
                 //set the string terminating NULL byte on the end of the data read 
                 // buffer = '\0';
-                send(sd , buffer , strlen(buffer) , 0 );  
+                send(sd , buffer , strlen(buffer) , 0 );
+                buffer = {0};
                 
                 //Close the socket and mark as 0 in list for reuse
                 // close (sd);
