@@ -155,7 +155,7 @@ std::string read_message(int sockfd)
     read_bytes_internal(sockfd, &result, message_size);
     std::cout<<"Received: " << result <<std::endl;
 
-    std::copy(buffer, result.c_str());
+    std::strcpy(buffer, result.c_str());
     return result;
 }
 
