@@ -141,7 +141,7 @@ void read_bytes_internal(int sockfd, void * where, size_t size)
 
     while (remaining > 0) {
         // check error here
-        auto just_read = recv(sockfd, where, remaining);
+        auto just_read = recv(sockfd, where, remaining, 0);
         remaining -= just_read;
     }
 } 
@@ -154,7 +154,7 @@ std::string read_message(int sockfd)
     std::string result{ message_size, 0 };
     read_bytes_internal(sockfd, &result[0], message_size);
 
-    return result;
+    return result.c_str();
 }
 
 int CheckConnections() {
@@ -232,7 +232,7 @@ int CheckConnections() {
                 printf("\nReceived from client: %s", buffer);
                 sendToRocksDB();
                 //set the string terminating NULL byte on the end of the data read 
-                buffer = '\0';
+                // buffer = '\0';
                 send(sd , buffer , strlen(buffer) , 0 );  
                 
                 //Close the socket and mark as 0 in list for reuse
