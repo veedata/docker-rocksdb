@@ -77,7 +77,7 @@ const std::string kDBSecondaryPath = getSecondaryDBAddr();
 
 DB *db_primary = nullptr;
 char buffer[1024] = {0};
-char out_char[1] = {0}
+char out_char[1] = {0};
 int new_socket, master_socket, addrlen, client_socket[10], max_clients = 10, activity, i, valread, sd, max_sd;
 struct sockaddr_in address;
 int primarydb_sock = 0;
@@ -227,7 +227,7 @@ int CheckConnections() {
             // read_message(sd);
             // if (strcmp(buffer, "disco") == 0) {
             if (strcmp(buffer, "disco") == 0) {
-                
+
                 //Somebody disconnected , get his details and print 
                 getpeername(sd , (struct sockaddr*)&address , (socklen_t*)&addrlen);  
                 printf("Host disconnected , ip %s , port %d \n", inet_ntoa(address.sin_addr) , ntohs(address.sin_port));  
