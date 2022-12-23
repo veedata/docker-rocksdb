@@ -151,11 +151,11 @@ std::string read_message(int sockfd)
     message_size_t message_size{ 0 };
     read_bytes_internal(sockfd, &message_size, sizeof(message_size));
 
-    std::string result{ message_size, 0 };
-    read_bytes_internal(sockfd, &result[0], message_size);
-    printf("Received %s\n" , result);
+    std::string result;
+    read_bytes_internal(sockfd, &result, message_size);
+    std::cout<<"Received: " << result <<std::endl;
 
-    std::strcpy(buffer, result.c_str());
+    std::copy(buffer, result.c_str());
     return result;
 }
 
