@@ -153,6 +153,7 @@ std::string read_message(int sockfd)
 
     std::string result{ message_size, 0 };
     read_bytes_internal(sockfd, &result[0], message_size);
+    printf("Received %s\n" , result);
 
     std::strcpy(buffer, result.c_str());
     return result;
