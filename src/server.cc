@@ -128,7 +128,14 @@ int StartServer() {
     //add master socket to set 
     FD_SET(master_socket, &readfds);  
     max_sd = master_socket;  
-            
+
+    puts("Waiting for connections...");
+
+    return 0;
+}
+
+int CheckConnections() {
+
     //add child sockets to set 
     for ( i = 0 ; i < max_clients ; i++) {
         //socket descriptor 
@@ -142,13 +149,6 @@ int StartServer() {
         if(sd > max_sd)
             max_sd = sd;
     }
-
-    puts("Waiting for connections...");
-
-    return 0;
-}
-
-int CheckConnections() {
 
     // wait for an activity on one of the sockets , timeout is NULL , 
     // so wait indefinitely 
