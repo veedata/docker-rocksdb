@@ -155,6 +155,7 @@ std::string read_message(int sockfd)
     read_bytes_internal(sockfd, &result[0], message_size);
 
     std::strcpy(buffer, result.c_str());
+    return result;
 }
 
 int CheckConnections() {
@@ -217,7 +218,7 @@ int CheckConnections() {
 
             // Check if it was for closing , and also read the incoming message 
             // if ((valread = read(sd, buffer, sizeof(buffer)-1)) == 0) {
-            if ((read_message(sd)) == 0) {
+            if (strcmp(read_message(sd), "disco") == 0) {
 
                 //Somebody disconnected , get his details and print 
                 getpeername(sd , (struct sockaddr*)&address , (socklen_t*)&addrlen);  
