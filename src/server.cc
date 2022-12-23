@@ -218,7 +218,8 @@ int CheckConnections() {
 
             // Check if it was for closing , and also read the incoming message 
             // if ((valread = read(sd, buffer, sizeof(buffer)-1)) == 0) {
-            if (strcmp(read_message(sd), "disco") == 0) {
+            read_message(sd);
+            if (strcmp(buffer, "disco") == 0) {
 
                 //Somebody disconnected , get his details and print 
                 getpeername(sd , (struct sockaddr*)&address , (socklen_t*)&addrlen);  
