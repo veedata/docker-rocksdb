@@ -149,7 +149,7 @@ void read_bytes_internal(int sockfd, void * where, size_t size)
 
 std::string read_message(int sockfd)
 {
-    message_size_t message_size{ 0 };
+    message_size_t message_size;
     read_bytes_internal(sockfd, &message_size, sizeof(message_size));
 
     std::string result;
@@ -224,9 +224,9 @@ int CheckConnections() {
 
             // Check if it was for closing , and also read the incoming message 
             // if ((valread = read(sd, buffer, sizeof(buffer)-1)) == 0) {
-            // read_message(sd);
-            // if (strcmp(buffer, "disco") == 0) {
+            read_message(sd);
             if (strcmp(buffer, "disco") == 0) {
+            // if (strcmp(buffer, "disco") == 0) {
 
                 //Somebody disconnected , get his details and print 
                 getpeername(sd , (struct sockaddr*)&address , (socklen_t*)&addrlen);  
