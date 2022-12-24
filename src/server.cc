@@ -147,7 +147,7 @@ void read_bytes_internal(int sockfd, void * where, size_t size)
 std::string read_message(int sockfd)
 {
     uint32_t message_size;
-    recv(clientfd, &message_size, sizeof(message_size), 0);
+    recv(sockfd, &message_size, sizeof(message_size), 0);
     message_size = ntohl(message_size);
     // read_bytes_internal(sockfd, &message_size, sizeof(message_size));
 
