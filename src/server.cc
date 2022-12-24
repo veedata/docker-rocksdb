@@ -65,8 +65,6 @@ using ROCKSDB_NAMESPACE::ReadOptions;
 using ROCKSDB_NAMESPACE::Status;
 using ROCKSDB_NAMESPACE::WriteOptions;
 
-using message_size_t = uint64_t;
-
 
 const std::string hdfsEnv = "hdfs://172.17.0.5:9000/";
 const std::string kDBPrimaryPath = "primary";
@@ -148,12 +146,14 @@ void read_bytes_internal(int sockfd, void * where, size_t size)
 
 std::string read_message(int sockfd)
 {
-    message_size_t message_size;
-    read_bytes_internal(sockfd, &message_size, sizeof(message_size));
+    uint32_t message_size;
+    recv(clientfd, &message_size, sizeof(message_size), 0);
+    message_size = ntohl(message_size);
+    // read_bytes_internal(sockfd, &message_size, sizeof(message_size));
 
     std::string result{ message_size, 0 };
     read_bytes_internal(sockfd, &result[0], message_size);
-    printf("Received %s\n" , result);
+    std::cout << "Received: " << message_size << " and " << result << std::endl;
 
     std::strcpy(buffer, result.c_str());
     return result;
