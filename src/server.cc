@@ -218,9 +218,9 @@ int CheckConnections() {
         if (FD_ISSET( sd , &readfds)) {
 
             // Check if it was for closing , and also read the incoming message 
-            // if ((valread = read(sd, buffer, sizeof(buffer)-1)) == 0) {
-            read_message(sd);
-            if (strcmp(buffer, "disco") == 0) {
+            if ((valread = read(sd, buffer, sizeof(buffer)-1)) == 0) {
+            // read_message(sd);
+            // if (strcmp(buffer, "disco") == 0) {
 
                 //Somebody disconnected , get his details and print 
                 getpeername(sd , (struct sockaddr*)&address , (socklen_t*)&addrlen);  
