@@ -238,11 +238,11 @@ int CheckConnections() {
             }    
             //Echo back the message that came in 
             else {
-                printf("\nReceived from client: %s", buffer);
+                printf("\nReceived from client: %s\n", buffer);
                 sendToRocksDB();
                 //set the string terminating NULL byte on the end of the data read 
                 buffer[0] = '\0';
-                send(sd , buffer , strlen(buffer) , 0 );
+                // send(sd , buffer , strlen(buffer) , 0 );
                 // buffer = {0};
                 
                 //Close the socket and mark as 0 in list for reuse
@@ -271,7 +271,7 @@ int connectToPrimaryDB() {
     struct sockaddr_in primarydb_serv_addr;
 
     if ((primarydb_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        printf("Socket creation error");
+        printf("Socket creation error\n");
         return -1;
     }
 
@@ -282,16 +282,16 @@ int connectToPrimaryDB() {
 
     // Convert IPv4 and IPv6 addresses from text to binary form
     if (inet_pton(AF_INET, "172.17.0.7", &primarydb_serv_addr.sin_addr) <= 0) {
-        printf("Invalid address/ Address not supported"); 
+        printf("Invalid address/ Address not supported\n"); 
         return -1;
     }
 
     if (connect(primarydb_sock, (struct sockaddr *)&primarydb_serv_addr, sizeof(primarydb_serv_addr)) < 0) {
-        printf("Connection Failed"); 
+        printf("Connection Failed\n"); 
         return -1;
     }
 
-    printf("Connected to PrimaryDB!");
+    printf("Connected to PrimaryDB!\n");
 
     return 0;
 }
@@ -299,10 +299,10 @@ int connectToPrimaryDB() {
 
 void sendToPrimaryDB() {
     // connectToPrimaryDB();
-    printf("\nSending %s to PrimaryDB", buffer);
+    printf("\nSending %s to PrimaryDB\n", buffer);
     int send_res = send(primarydb_sock, buffer, strlen(buffer), 0);
     if (send_res == -1){
-        printf("\nError sending to primaryDB");
+        printf("\nError sending to primaryDB\n");
     }
     // disconnectPrimaryDB();
 }
