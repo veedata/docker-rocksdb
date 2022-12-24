@@ -122,7 +122,7 @@ int StartServer() {
 
     // Accept the incoming connection 
     addrlen = sizeof(address);
-    puts("Server Started!");
+    std::cout<<"Server Started!"<<std::endl;
 
     //clear the socket set 
     FD_ZERO(&readfds);  
@@ -131,7 +131,7 @@ int StartServer() {
     FD_SET(master_socket, &readfds);  
     max_sd = master_socket;  
 
-    puts("Waiting for connections...");
+    std::cout<<"Waiting for connections..."<<std::endl;
 
     return 0;
 }
