@@ -469,8 +469,8 @@ void sendToRocksDB() {
 		fprintf(stdout, "Observed %i keys\n", count); 
     }
     else if ((strcmp(w[0], "put") == 0) || (strcmp(w[0], "update") == 0) || (strcmp(w[0], "delete") == 0)) {
-        // std::cout << "Sending to PrimaryDB" << std::endl;
-        sendToPrimaryDB();
+        std::cout << "Sending to PrimaryDB" << std::endl;
+        // sendToPrimaryDB();
     }
     else {
         std::cout << "Input error, ignoring input" << std::endl;
