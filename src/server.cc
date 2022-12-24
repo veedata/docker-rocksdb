@@ -218,9 +218,9 @@ int CheckConnections() {
                 
         if (FD_ISSET( sd , &readfds)) {
 
-            while (strcmp(read(sd, out_char, 1), "\0") != 0) {
-                strcat(buffer, out_char);
-            } 
+            // while (strcmp(read(sd, out_char, 1), "\0") != 0) {
+            //     strcat(buffer, out_char);
+            // } 
 
             // Check if it was for closing , and also read the incoming message 
             // if ((valread = read(sd, buffer, sizeof(buffer)-1)) == 0) {
@@ -241,9 +241,9 @@ int CheckConnections() {
                 printf("\nReceived from client: %s", buffer);
                 sendToRocksDB();
                 //set the string terminating NULL byte on the end of the data read 
-                // buffer = '\0';
+                buffer[0] = '\0';
                 send(sd , buffer , strlen(buffer) , 0 );
-                buffer = {0};
+                // buffer = {0};
                 
                 //Close the socket and mark as 0 in list for reuse
                 // close (sd);
