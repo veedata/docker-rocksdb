@@ -154,7 +154,7 @@ std::string read_message(int sockfd)
     // Read the message data
     int bytes_received = 0;
     while (bytes_received < message_size) {
-      int n = recv(clientfd, buffer + bytes_received, BUFFER_SIZE - bytes_received, 0);
+      int n = recv(sockfd, buffer + bytes_received, 1024 - bytes_received, 0);
       if (n == 0) {
         std::cout << "Connection closed by the client" << std::endl;
         break;
@@ -162,7 +162,7 @@ std::string read_message(int sockfd)
       bytes_received += n;
     }
 
-    return std::string(buffer, message_size)
+    return std::string(buffer, message_size);
 
     // std::string result{ message_size, 0 };
     // read_bytes_internal(sockfd, &result[0], message_size);
