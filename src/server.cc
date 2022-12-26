@@ -143,6 +143,10 @@ void read_bytes_internal(int sockfd, void * where, size_t size)
     while (remaining > 0) {
         // check error here
         auto just_read = recv(sockfd, where, remaining, 0);
+        if (just_read <= 0) {
+            std::cout << "Problem in connection with client: Code: " << n << std::endl;
+            break;
+        }
         remaining -= just_read;
     }
 } 
@@ -151,11 +155,11 @@ std::string read_message(int sockfd) {
 
     uint32_t message_size = 0;
     std::cout << "Message Size (Org): " << message_size << std::endl;
-    recv(sockfd, &message_size, sizeof(message_size), 0);
+    // recv(sockfd, &message_size, sizeof(message_size), 0);
+    read_bytes_internal(sockfd, &message_size, sizeof(message_size));
     std::cout << "Message Size (Rec): " << message_size << std::endl;
     message_size = ntohl(message_size);
     std::cout << "Message Size (Con): " << message_size << std::endl;
-    // read_bytes_internal(sockfd, &message_size, sizeof(message_size));
 
     // Read the message data
     int bytes_received = 0;
