@@ -140,6 +140,7 @@ uint32_t read_bytes_internal(int sock_in)
 {
     uint32_t message_size = 0;
     size_t remaining = sizeof(message_size);
+    std::cout << "Reading bytes num: " << sizeof(message_size) << std::endl;
 
     // Read the message size from the socket
     while (remaining > 0) {
@@ -149,7 +150,7 @@ uint32_t read_bytes_internal(int sock_in)
         std::cout << "Problem in connection with client: Code: " << just_read << std::endl;
         break;
       }
-      std::cout << "Read " << just_read << " bytes of message size" << std::endl;
+      std::cout << "Read " << just_read << " bytes of message size: " << message_size << std::endl;
 
       // Update the number of bytes remaining to be read
       remaining -= just_read;
@@ -165,11 +166,10 @@ std::string read_message(int sockfd) {
     uint32_t message_size = 0;
     std::cout << "Message Size (Org): " << message_size << std::endl;
     // recv(sockfd, &message_size, sizeof(message_size), 0);
-    std::cout << "reading bytes num: " << sizeof(message_size) << std::endl;
     message_size = read_bytes_internal(sockfd);
     std::cout << "Message Size (Rec): " << message_size << std::endl;
     // message_size = ntohl(message_size);
-    std::cout << "Message Size (Con): " << message_size << std::endl;
+    // std::cout << "Message Size (Con): " << message_size << std::endl;
 
     // Read the message data
     int bytes_received = 0;
