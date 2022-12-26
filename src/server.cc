@@ -136,9 +136,10 @@ int StartServer() {
     return 0;
 }
 
-void read_bytes_internal(int sockfd, void * where, size_t size)
+uint32_t read_bytes_internal(int sockfd, size_t size)
 {
     auto remaining = size;
+    uint32_t where = 0;
 
     while (remaining > 0) {
         // check error here
@@ -150,6 +151,9 @@ void read_bytes_internal(int sockfd, void * where, size_t size)
         std::cout << "Read " << just_read << "bytes: " << where << std::endl;
         remaining -= just_read;
     }
+    
+    where = ntohl(where);
+    return where;
 } 
 
 std::string read_message(int sockfd) {
@@ -158,9 +162,9 @@ std::string read_message(int sockfd) {
     std::cout << "Message Size (Org): " << message_size << std::endl;
     // recv(sockfd, &message_size, sizeof(message_size), 0);
     std::cout << "reading bytes num: " << sizeof(message_size) << std::endl;
-    read_bytes_internal(sockfd, &message_size, sizeof(message_size));
+    message_size = read_bytes_internal(sockfd, sizeof(message_size));
     std::cout << "Message Size (Rec): " << message_size << std::endl;
-    message_size = ntohl(message_size);
+    // message_size = ntohl(message_size);
     std::cout << "Message Size (Con): " << message_size << std::endl;
 
     // Read the message data
