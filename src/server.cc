@@ -74,7 +74,8 @@ const std::string kDBSecondaryPath = getSecondaryDBAddr();
 #define PORT 34728                // Secondary DB port
 
 DB *db_primary = nullptr;
-char buffer[100024] = {0};
+DB* db_secondary = nullptr;
+char buffer[1024] = {0};
 int new_socket, master_socket, addrlen, client_socket[10], max_clients = 10, activity, i, valread, sd, max_sd;
 struct sockaddr_in address;
 int primarydb_sock = 0;
@@ -369,13 +370,7 @@ void writeToCsv(std::string csv_op, std::string csv_key, std::string csv_val, st
     mlbc_dataset.close();
 }
 
-void sendToRocksDB() {
-
-    // Need to test code without this - It is basically for checking for user interrupts from what I understand
-    // It additionally also makes sure that there is concurrency in code (memory_order_relaxed). So, usefulness is unknown
-    ::signal(SIGINT, secondary_instance_sigint_handler);
-
-    DB* db_secondary;
+void openSecondaryDB() {
 
     long my_pid = static_cast<long>(getpid());
     db_secondary = nullptr;
@@ -405,6 +400,13 @@ void sendToRocksDB() {
         if (!s.ok()) { fprintf(stderr, "[process %ld] Failed to open DB: %s\n", my_pid, s.ToString().c_str()); assert(false); }
         else { fprintf(stdout, "[process %ld] DB Open: %s\n", my_pid, s.ToString().c_str()); assert(true); }
     }
+}
+
+void sendToRocksDB() {
+
+    // Need to test code without this - It is basically for checking for user interrupts from what I understand
+    // It additionally also makes sure that there is concurrency in code (memory_order_relaxed). So, usefulness is unknown
+    ::signal(SIGINT, secondary_instance_sigint_handler);
 
     wordexp_t p;
     char **w;
@@ -480,7 +482,9 @@ void sendToRocksDB() {
     }
 
     wordfree(&p);
+}
 
+void CloseSecondaryDB(){
     if (nullptr != db_secondary) {
 		delete db_secondary;
 		db_secondary = nullptr;
@@ -530,6 +534,7 @@ int main() {
     // connectToPrimaryDB();
     CreateDB();
     connectToPrimaryDB();
+    openSecondaryDB();
     StartServer();
 
     // Read from connection
@@ -542,6 +547,7 @@ int main() {
     // Close connection
     // Currently should not be reached!
     disconnectPrimaryDB();
+    CloseSecondaryDB();
     StopServer();
 
     return 0;
