@@ -147,9 +147,10 @@ void read_bytes_internal(int sockfd, void * where, size_t size)
     }
 } 
 
-std::string read_message(int sockfd)
-{
-    uint32_t message_size;
+std::string read_message(int sockfd) {
+
+    uint32_t message_size = 0;
+    std::cout << "Message Size (Org): " << message_size << std::endl;
     recv(sockfd, &message_size, sizeof(message_size), 0);
     std::cout << "Message Size (Rec): " << message_size << std::endl;
     message_size = ntohl(message_size);
@@ -160,8 +161,8 @@ std::string read_message(int sockfd)
     int bytes_received = 0;
     while (bytes_received < message_size) {
       int n = recv(sockfd, buffer + bytes_received, message_size - bytes_received, 0);
-      if (n == 0) {
-        std::cout << "Connection closed by the client" << std::endl;
+      if (n <= 0) {
+        std::cout << "Problem in connection with client: Code: " << n << std::endl;
         break;
       }
       bytes_received += n;
