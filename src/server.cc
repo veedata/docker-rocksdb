@@ -144,7 +144,7 @@ void read_bytes_internal(int sockfd, void * where, size_t size)
         // check error here
         auto just_read = recv(sockfd, where, remaining, 0);
         if (just_read <= 0) {
-            std::cout << "Problem in connection with client: Code: " << n << std::endl;
+            std::cout << "Problem in connection with client: Code: " << just_read << std::endl;
             break;
         }
         remaining -= just_read;
