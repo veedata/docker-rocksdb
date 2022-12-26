@@ -251,7 +251,7 @@ int CheckConnections() {
             else {
                 // printf("\nReceived from client: %s\n", buffer);
                 std::cout << "\nReceived from client: " << out_buf << std::endl;
-                sendToRocksDB();
+                // sendToRocksDB();
                 //set the string terminating NULL byte on the end of the data read 
                 // buffer = '\0';
                 // send(sd , buffer , strlen(buffer) , 0 );  
