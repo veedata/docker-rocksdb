@@ -231,6 +231,7 @@ int CheckConnections() {
 
             // Check if it was for closing , and also read the incoming message 
             // if ((valread = read(sd, buffer, sizeof(buffer)-1)) == 0) {
+            std::memset(&(buffer[0]), 0, 1024);
             std::string out_buf = read_message(sd);
             if (out_buf == "disco") {
 
@@ -407,6 +408,7 @@ void sendToRocksDB() {
     wordexp_t p;
     char **w;
 
+// pensding to fix this.. but tomorrow
     wordexp(buffer, &p, 0);
     w = p.we_wordv;
 
