@@ -77,6 +77,8 @@ DB *db_primary = nullptr;
 DB* db_secondary = nullptr;
 char buffer[1024] = {0};
 int new_socket, master_socket, addrlen, client_socket[10], max_clients = 10, activity, i, valread, sd, max_sd;
+std::vector<rocksdb::ColumnFamilyDescriptor> secondary_column_families;
+std::vector<rocksdb::ColumnFamilyHandle*> secondary_handles;
 struct sockaddr_in address;
 int primarydb_sock = 0;
 fd_set readfds;
@@ -385,9 +387,6 @@ void openSecondaryDB() {
 	options.env = hdfs.get();
     options.create_if_missing = true;
     options.max_open_files = -1;
-
-    std::vector<rocksdb::ColumnFamilyDescriptor> secondary_column_families;
-    std::vector<rocksdb::ColumnFamilyHandle*> secondary_handles;
 
     for (const auto& cf_name : GetColumnFamilyNames()) {
         secondary_column_families.push_back(rocksdb::ColumnFamilyDescriptor(cf_name, options));
