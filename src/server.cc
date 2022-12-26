@@ -74,7 +74,7 @@ const std::string kDBSecondaryPath = getSecondaryDBAddr();
 #define PORT 34728                // Secondary DB port
 
 DB *db_primary = nullptr;
-char buffer[1024] = {0};
+char buffer[100024] = {0};
 int new_socket, master_socket, addrlen, client_socket[10], max_clients = 10, activity, i, valread, sd, max_sd;
 struct sockaddr_in address;
 int primarydb_sock = 0;
