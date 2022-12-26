@@ -156,6 +156,7 @@ std::string read_message(int sockfd) {
     uint32_t message_size = 0;
     std::cout << "Message Size (Org): " << message_size << std::endl;
     // recv(sockfd, &message_size, sizeof(message_size), 0);
+    std::cout << "reading bytes num: " << sizeof(message_size) << std::endl;
     read_bytes_internal(sockfd, &message_size, sizeof(message_size));
     std::cout << "Message Size (Rec): " << message_size << std::endl;
     message_size = ntohl(message_size);
