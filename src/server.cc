@@ -152,6 +152,7 @@ std::string read_message(int sockfd)
     uint32_t message_size;
     recv(sockfd, &message_size, sizeof(message_size), 0);
     message_size = ntohl(message_size);
+    std::cout << "Message Size: " << message_size << std::endl;
     // read_bytes_internal(sockfd, &message_size, sizeof(message_size));
 
     // Read the message data
