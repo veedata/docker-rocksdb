@@ -136,25 +136,29 @@ int StartServer() {
     return 0;
 }
 
-uint32_t read_bytes_internal(int sockfd, size_t size)
+uint32_t read_bytes_internal(int sock_in)
 {
-    auto remaining = size;
-    uint32_t where = 0;
+    uint32_t message_size = 0;
+    size_t remaining = sizeof(message_size);
 
+    // Read the message size from the socket
     while (remaining > 0) {
-        // check error here
-        auto just_read = recv(sockfd, where, remaining, 0);
-        if (just_read <= 0) {
-            std::cout << "Problem in connection with client: Code: " << just_read << std::endl;
-            break;
-        }
-        std::cout << "Read " << just_read << "bytes: " << where << std::endl;
-        remaining -= just_read;
+      // Check for errors
+      int just_read = recv(sock_in, &message_size, remaining, 0);
+      if (just_read <= 0) {
+        std::cout << "Problem in connection with client: Code: " << just_read << std::endl;
+        break;
+      }
+      std::cout << "Read " << just_read << " bytes of message size" << std::endl;
+
+      // Update the number of bytes remaining to be read
+      remaining -= just_read;
     }
-    
-    where = ntohl(where);
-    return where;
-} 
+
+    // Convert the message size from network byte order to host byte order
+    message_size = ntohl(message_size);
+    return message_size;
+}
 
 std::string read_message(int sockfd) {
 
@@ -162,7 +166,7 @@ std::string read_message(int sockfd) {
     std::cout << "Message Size (Org): " << message_size << std::endl;
     // recv(sockfd, &message_size, sizeof(message_size), 0);
     std::cout << "reading bytes num: " << sizeof(message_size) << std::endl;
-    message_size = read_bytes_internal(sockfd, sizeof(message_size));
+    message_size = read_bytes_internal(sockfd);
     std::cout << "Message Size (Rec): " << message_size << std::endl;
     // message_size = ntohl(message_size);
     std::cout << "Message Size (Con): " << message_size << std::endl;
