@@ -147,6 +147,7 @@ void read_bytes_internal(int sockfd, void * where, size_t size)
             std::cout << "Problem in connection with client: Code: " << just_read << std::endl;
             break;
         }
+        std::cout << "Read " << just_read << "bytes: " << where << std::endl;
         remaining -= just_read;
     }
 } 
