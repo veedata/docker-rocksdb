@@ -41,7 +41,7 @@ int StartServer();
 int CheckConnections();
 int StopServer();
 void OpenDB();
-void sendToRocksDB();
+void sendToRocksDB(std::string rdb_in);
 void CloseDB();
 void CreateDB();
 
@@ -114,19 +114,63 @@ int StartServer() {
     // Accept the incoming connection 
     addrlen = sizeof(address);
     puts("Server Started!");
-    puts("Waiting for connections...");
-
-    return 0;
-}
-
-int CheckConnections() {
-
+    
     //clear the socket set 
     FD_ZERO(&readfds);  
     
     //add master socket to set 
     FD_SET(master_socket, &readfds);  
     max_sd = master_socket;  
+
+    puts("Waiting for connections...");
+
+    return 0;
+}
+
+uint32_t read_bytes_internal(int sock_in)
+{
+    uint32_t message_size = 0;
+    size_t remaining = sizeof(message_size);
+
+    // Read the message size from the socket
+    while (remaining > 0) {
+      // Check for errors
+      int just_read = recv(sock_in, &message_size, remaining, 0);
+      if (just_read <= 0) {
+        std::cout << "Problem in connection with client: Code: " << just_read << std::endl;
+        break;
+      }
+
+      // Update the number of bytes remaining to be read
+      remaining -= just_read;
+    }
+
+    // Convert the message size from network byte order to host byte order
+    message_size = ntohl(message_size);
+    return message_size;
+}
+
+std::string read_message(int sockfd) {
+
+    uint32_t message_size = 0;
+
+    message_size = read_bytes_internal(sockfd);
+
+    // Read the message data
+    int bytes_received = 0;
+    while (bytes_received < message_size) {
+      int n = recv(sockfd, buffer + bytes_received, message_size - bytes_received, 0);
+      if (n <= 0) {
+        std::cout << "Problem in connection with client: Code: " << n << std::endl;
+        break;
+      }
+      bytes_received += n;
+    }
+
+    return std::string(buffer, message_size);
+}
+
+int CheckConnections() {
             
     //add child sockets to set 
     for ( i = 0 ; i < max_clients ; i++) {
@@ -179,6 +223,8 @@ int CheckConnections() {
                 
         if (FD_ISSET( sd , &readfds)) {
 
+            std::memset(&(buffer[0]), 0, 1024);
+            std::string out_buf = read_message(sd);
             // Check if it was for closing , and also read the incoming message 
             if ((valread = read(sd ,buffer, 1024)) == 0) {
 
@@ -192,11 +238,11 @@ int CheckConnections() {
             }    
             //Echo back the message that came in 
             else {
-                std::cout << "Received: " << buffer << std::endl;
+                // std::cout << "Received: " << buffer << std::endl;
                 // fprintf(stdout, "Received: %s\n", buffer);
-                sendToRocksDB();
+                sendToRocksDB(out_buf);
                 //set the string terminating NULL byte on the end of the data read 
-                buffer[valread] = '\0';
+                // buffer[valread] = '\0';
                 // send(sd , buffer , strlen(buffer) , 0 );  
 
                 //Close the socket and mark as 0 in list for reuse 
@@ -285,13 +331,13 @@ void writeToCsv(std::string csv_op, std::string csv_key, std::string csv_val, st
 
 
 // Parse the buffer and convert it to rocksdb understandable functions and send to RocksDB! 
-void sendToRocksDB() {
+void sendToRocksDB(std::string rdb_in) {
 
     // Using wordexp_t to strip at spaces (amongst other things that may be used if we do ldb in the future)
     wordexp_t p;
     char **w;
 
-    wordexp(buffer, &p, 0);
+    wordexp(rdb_in.c_str(), &p, 0);
     w = p.we_wordv;
 
     // numberOfArgs -> p.we_wordc
