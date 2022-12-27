@@ -51,7 +51,7 @@ int connectToPrimaryDB();
 void sendToPrimaryDB();
 void disconnectPrimaryDB();
 void OpenDB();
-void sendToRocksDB();
+void sendToRocksDB(std::string rdb_in);
 void CloseDB();
 void CreateDB();
 std::string getSecondaryDBAddr();
@@ -140,7 +140,6 @@ uint32_t read_bytes_internal(int sock_in)
 {
     uint32_t message_size = 0;
     size_t remaining = sizeof(message_size);
-    std::cout << "Reading bytes num: " << sizeof(message_size) << std::endl;
 
     // Read the message size from the socket
     while (remaining > 0) {
@@ -150,7 +149,6 @@ uint32_t read_bytes_internal(int sock_in)
         std::cout << "Problem in connection with client: Code: " << just_read << std::endl;
         break;
       }
-      std::cout << "Read " << just_read << " bytes of message size: " << message_size << std::endl;
 
       // Update the number of bytes remaining to be read
       remaining -= just_read;
@@ -164,12 +162,8 @@ uint32_t read_bytes_internal(int sock_in)
 std::string read_message(int sockfd) {
 
     uint32_t message_size = 0;
-    std::cout << "Message Size (Org): " << message_size << std::endl;
-    // recv(sockfd, &message_size, sizeof(message_size), 0);
+
     message_size = read_bytes_internal(sockfd);
-    std::cout << "Message Size (Rec): " << message_size << std::endl;
-    // message_size = ntohl(message_size);
-    // std::cout << "Message Size (Con): " << message_size << std::endl;
 
     // Read the message data
     int bytes_received = 0;
@@ -180,16 +174,9 @@ std::string read_message(int sockfd) {
         break;
       }
       bytes_received += n;
-      std::cout << "Bytes Recd: " << bytes_received << std::endl;
     }
 
     return std::string(buffer, message_size);
-
-    // std::string result{ message_size, 0 };
-    // read_bytes_internal(sockfd, &result[0], message_size);
-    // std::cout << "Received: " << message_size << " and " << result << std::endl;
-
-    // return result;
 }
 
 int CheckConnections() {
@@ -267,8 +254,8 @@ int CheckConnections() {
             //Echo back the message that came in 
             else {
                 // printf("\nReceived from client: %s\n", buffer);
-                std::cout << "\nReceived from client: " << out_buf << std::endl;
-                // sendToRocksDB();
+                // std::cout << "\nReceived from client: " << out_buf << std::endl;
+                sendToRocksDB(out_buf);
                 //set the string terminating NULL byte on the end of the data read 
                 // buffer = '\0';
                 // send(sd , buffer , strlen(buffer) , 0 );  
@@ -418,7 +405,7 @@ void openSecondaryDB() {
     }
 }
 
-void sendToRocksDB() {
+void sendToRocksDB(std::string rdb_in) {
 
     // Need to test code without this - It is basically for checking for user interrupts from what I understand
     // It additionally also makes sure that there is concurrency in code (memory_order_relaxed). So, usefulness is unknown
@@ -427,8 +414,8 @@ void sendToRocksDB() {
     wordexp_t p;
     char **w;
 
-// pensding to fix this.. but tomorrow
-    wordexp(buffer, &p, 0);
+    // pensding to fix this.. but tomorrow
+    wordexp(rdb_in.c_str(), &p, 0);
     w = p.we_wordv;
 
 	ReadOptions ropts;
