@@ -48,7 +48,7 @@ int StartServer();
 int CheckConnections();
 int StopServer();
 int connectToPrimaryDB();
-void sendToPrimaryDB();
+void sendToPrimaryDB(std::string rdb_in);
 void disconnectPrimaryDB();
 void OpenDB();
 void sendToRocksDB(std::string rdb_in);
@@ -177,6 +177,14 @@ std::string read_message(int sockfd) {
     }
 
     return std::string(buffer, message_size);
+}
+
+void write_message(int sockfd, const std::string & message)
+{
+
+    uint32_t message_size = htonl(message.size()); // Convert the size of the message from host byte order to network byte order
+    send(sockfd, &message_size, sizeof(message_size), 0); // Send the size of the message
+    send(sockfd, message.data(), message.size(), 0);
 }
 
 int CheckConnections() {
@@ -312,13 +320,14 @@ int connectToPrimaryDB() {
 }
 
 
-void sendToPrimaryDB() {
+void sendToPrimaryDB(std::string rdb_in) {
     // connectToPrimaryDB();
-    printf("\nSending %s to PrimaryDB\n", buffer);
-    int send_res = send(primarydb_sock, buffer, strlen(buffer), 0);
-    if (send_res == -1){
-        printf("\nError sending to primaryDB\n");
-    }
+    printf("\nSending %s to PrimaryDB\n", rdb_in);
+    write_message(primarydb_sock, rdb_in);
+    // int send_res = send(primarydb_sock, buffer, strlen(buffer), 0);
+    // if (send_res == -1){
+    //     printf("\nError sending to primaryDB\n");
+    // }
     // disconnectPrimaryDB();
 }
 
@@ -478,7 +487,7 @@ void sendToRocksDB(std::string rdb_in) {
     }
     else if ((strcmp(w[0], "put") == 0) || (strcmp(w[0], "update") == 0) || (strcmp(w[0], "delete") == 0)) {
         std::cout << "Sending to PrimaryDB" << std::endl;
-        // sendToPrimaryDB();
+        sendToPrimaryDB(rdb_in);
     }
     else {
         std::cout << "Input error, ignoring input" << std::endl;
