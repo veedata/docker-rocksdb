@@ -321,14 +321,8 @@ int connectToPrimaryDB() {
 
 
 void sendToPrimaryDB(std::string rdb_in) {
-    // connectToPrimaryDB();
-    printf("\nSending %s to PrimaryDB\n", rdb_in);
+    std::cout << "Sending to PrimaryDB: " << rdb_in << std::endl;
     write_message(primarydb_sock, rdb_in);
-    // int send_res = send(primarydb_sock, buffer, strlen(buffer), 0);
-    // if (send_res == -1){
-    //     printf("\nError sending to primaryDB\n");
-    // }
-    // disconnectPrimaryDB();
 }
 
 
@@ -486,7 +480,6 @@ void sendToRocksDB(std::string rdb_in) {
 		fprintf(stdout, "Observed %i keys\n", count); 
     }
     else if ((strcmp(w[0], "put") == 0) || (strcmp(w[0], "update") == 0) || (strcmp(w[0], "delete") == 0)) {
-        std::cout << "Sending to PrimaryDB" << std::endl;
         sendToPrimaryDB(rdb_in);
     }
     else {
