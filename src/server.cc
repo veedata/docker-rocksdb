@@ -58,7 +58,7 @@ using ROCKSDB_NAMESPACE::WriteOptions;
 
 
 // DB related variables
-const std::string hdfsEnv = "hdfs://172.17.0.5:9000/";
+const std::string hdfsEnv = "hdfs://10.110.216.185:9000/";
 const std::string kDBPrimaryPath = "primary";
 
 DB* db_primary = nullptr; 
@@ -226,7 +226,7 @@ int CheckConnections() {
             std::memset(&(buffer[0]), 0, 1024);
             std::string out_buf = read_message(sd);
             // Check if it was for closing , and also read the incoming message 
-            if ((valread = read(sd ,buffer, 1024)) == 0) {
+            if (out_buf == "disco") {
 
                 //Somebody disconnected , get his details and print 
                 getpeername(sd , (struct sockaddr*)&address , (socklen_t*)&addrlen);  
