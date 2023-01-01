@@ -452,7 +452,7 @@ void CreateDB() {
     if (!s.ok()) 
         fprintf(stderr, "[process %ld] Failed to open HDFS env: %s\n", my_pid, s.ToString().c_str());
     else 
-        printf("Opened HDFS env");
+        printf("Opened HDFS env\n");
 
     assert(s.ok());
 
@@ -464,7 +464,7 @@ void CreateDB() {
     if (!s.ok())
         fprintf(stderr, "[process %ld] Failed to open DB: %s\n", my_pid, s.ToString().c_str());
     else 
-        printf("DB Open at: %s", kDBPrimaryPath.c_str());
+        printf("DB Open at: %s\n", kDBPrimaryPath.c_str());
     assert(s.ok());
 
     std::vector<rocksdb::ColumnFamilyHandle*> handles;
@@ -475,7 +475,10 @@ void CreateDB() {
         if (ROCKSDB_NAMESPACE::kDefaultColumnFamilyName != cf_name) {
             rocksdb::ColumnFamilyHandle* handle = nullptr;
             s = db->CreateColumnFamily(cf_opts, cf_name, &handle);
-            if (!s.ok()) { fprintf(stderr, "[process %ld] Failed to create CF %s: %s\n", my_pid, cf_name.c_str(), s.ToString().c_str()); assert(false); }
+            if (!s.ok()) { 
+                fprintf(stderr, "[process %ld] Failed to create CF %s: %s\n", my_pid, cf_name.c_str(), s.ToString().c_str()); 
+                assert(false); 
+            }
             
             handles.push_back(handle);
         }
