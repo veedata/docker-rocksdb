@@ -356,11 +356,11 @@ void sendToRocksDB(std::string rdb_in) {
             csv_client = w[3];
         }
 
-        if (s.ok())
+        if (!s.ok())
             // ;
-            std::cout << "Inserted key-value pair: " << w[1] << " " << w[2] << std::endl;
-        else
-            std::cout << "Error in inserting key and value " << w[1] << " " << w[2] << std::endl;
+            // std::cout << "Inserted key-value pair: " << w[1] << " " << w[2] << std::endl;
+        // else
+            std::cout << "Error in inserting key and value " << w[1] << " " << w[2] << " : " << s.ToString() << std::endl;
 
         std::string csv_operation = w[0];
         std::string csv_key = w[1];
