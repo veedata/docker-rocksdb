@@ -136,7 +136,7 @@ uint32_t read_bytes_internal(int sock_in)
     while (remaining > 0) {
       // Check for errors
       int just_read = recv(sock_in, &message_size, remaining, 0);
-      if (just_read <= 0) {
+      if (just_read < 0) {
         std::cout << "Problem in connection with client: Code: " << just_read << std::endl;
         break;
       }
@@ -160,7 +160,7 @@ std::string read_message(int sockfd) {
     int bytes_received = 0;
     while (bytes_received < message_size) {
       int n = recv(sockfd, buffer + bytes_received, message_size - bytes_received, 0);
-      if (n <= 0) {
+      if (n < 0) {
         std::cout << "Problem in connection with client: Code: " << n << std::endl;
         break;
       }
