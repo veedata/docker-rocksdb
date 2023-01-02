@@ -321,7 +321,7 @@ int connectToPrimaryDB() {
 
 
 void sendToPrimaryDB(std::string rdb_in) {
-    std::cout << "Sending to PrimaryDB: " << rdb_in << std::endl;
+    // std::cout << "Sending to PrimaryDB: " << rdb_in << std::endl;
     write_message(primarydb_sock, rdb_in);
 }
 
