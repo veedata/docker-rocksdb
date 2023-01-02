@@ -285,6 +285,9 @@ void openPrimaryDB() {
     Options options;
     options.env = hdfs.get();
     options.create_if_missing = false;
+    options.write_buffer_size = 67108864; // 64 MB
+    options.max_write_buffer_number = 5;
+    options.min_write_buffer_number_to_merge = 2;
     
     // Probably useless if condition, but have added it for safety. Thing is.. safety from what?
     if (nullptr == db_primary) {
