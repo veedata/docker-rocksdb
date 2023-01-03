@@ -283,7 +283,7 @@ void openPrimaryDB() {
     assert(s.ok());
 
     Options options;
-    // options.env = hdfs.get();
+    options.env = hdfs.get();
     options.create_if_missing = false;
     options.write_buffer_size = 67108864; // 64 MB
     options.max_write_buffer_number = 5;
@@ -460,7 +460,7 @@ void CreateDB() {
     assert(s.ok());
 
     Options options;
-    // options.env = hdfs.get();
+    options.env = hdfs.get();
     options.create_if_missing = true;
     s = DB::Open(options, kDBPrimaryPath, &db);
 
