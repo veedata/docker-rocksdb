@@ -29,6 +29,7 @@
 #include <unistd.h>
 #include <wordexp.h>
 #include <arpa/inet.h>
+#include <netinet/tcp.h>
 
 // For csv
 #include <chrono>
