@@ -36,6 +36,7 @@
 #include <unistd.h>
 #include <wordexp.h>
 #include <arpa/inet.h>
+#include <netinet/tcp.h>
 
 // for csv
 #include <fstream>
@@ -140,6 +141,12 @@ uint32_t read_bytes_internal(int sock_in)
 {
     uint32_t message_size = 0;
     size_t remaining = sizeof(message_size);
+    int opt=1;
+
+    if (setsockopt(sock_in, IPPROTO_TCP, TCP_QUICKACK, (char *)&opt, sizeof(opt)) < 0 )  {  
+        perror("setsockopt TCP_QUICKACK");
+        // exit(EXIT_FAILURE);
+    }
 
     // Read the message size from the socket
     while (remaining > 0) {
