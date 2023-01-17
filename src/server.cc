@@ -79,6 +79,7 @@ fd_set readfds;
 
 int StartServer() {
     int opt = 1;
+    int qack = 1;
 
     //initialise all client_socket[] to 0 so not checked 
     for (i = 0; i < max_clients; i++) {
@@ -96,6 +97,11 @@ int StartServer() {
     if (setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0 )  {  
         perror("setsockopt");
         exit(EXIT_FAILURE);
+    }
+    
+    if (setsockopt(master_socket, IPPROTO_TCP, TCP_QUICKACK, (char *)&qack, sizeof(qack)) < 0 )  {  
+        perror("setsockopt TCP_QUICKACK master");
+        // exit(EXIT_FAILURE);
     }
 
     address.sin_family = AF_INET;
