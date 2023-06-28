@@ -71,7 +71,7 @@ const std::string hdfsEnv = "hdfs://172.17.0.3:9000/";
 const std::string kDBPrimaryPath = "primary";
 const std::string kDBSecondaryPath = getSecondaryDBAddr();
 
-#define PRIMARYDB_PORT 32454      // Primary DB port
+#define PRIMARYDB_PORT 36728      // Primary DB port
 #define PORT 34728                // Secondary DB port
 
 DB *db_primary = nullptr;
@@ -317,7 +317,7 @@ int connectToPrimaryDB() {
     primarydb_serv_addr.sin_port = htons(PRIMARYDB_PORT);
 
     // Convert IPv4 and IPv6 addresses from text to binary form
-    if (inet_pton(AF_INET, "10.111.207.126", &primarydb_serv_addr.sin_addr) <= 0) {
+    if (inet_pton(AF_INET, "10.107.65.35", &primarydb_serv_addr.sin_addr) <= 0) {
         printf("Invalid address/ Address not supported\n"); 
         return -1;
     }
