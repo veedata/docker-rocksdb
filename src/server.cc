@@ -42,7 +42,7 @@ int StartServer();
 int CheckConnections();
 int StopServer();
 void OpenDB();
-void sendToRocksDB(std::string rdb_in);
+string sendToRocksDB(std::string rdb_in);
 void CloseDB();
 void CreateDB();
 
@@ -59,7 +59,7 @@ using ROCKSDB_NAMESPACE::WriteOptions;
 
 
 // DB related variables
-const std::string hdfsEnv = "hdfs://192.168.49.1:9000/";
+const std::string hdfsEnv = "hdfs://172.17.0.3:9000/";
 const std::string kDBPrimaryPath = "primary";
 
 DB* db_primary = nullptr; 
@@ -238,6 +238,8 @@ int CheckConnections() {
 
             std::memset(&(buffer[0]), 0, 1024);
             std::string out_buf = read_message(sd);
+            std::string send_buf = "";
+            
             // Check if it was for closing , and also read the incoming message 
             if (out_buf == "disco") {
 
@@ -253,10 +255,10 @@ int CheckConnections() {
             else {
                 // std::cout << "Received: " << buffer << std::endl;
                 // fprintf(stdout, "Received: %s\n", buffer);
-                sendToRocksDB(out_buf);
+                send_buf = sendToRocksDB(out_buf);
                 //set the string terminating NULL byte on the end of the data read 
                 // buffer[valread] = '\0';
-                // send(sd , buffer , strlen(buffer) , 0 );  
+                send(sd, send_buf ,strlen(send_buf), 0);  
 
                 //Close the socket and mark as 0 in list for reuse 
                 // close( sd );  
@@ -281,7 +283,7 @@ int StopServer() {
 // 0 is lowest priority and 5 is highest priority 
 const std::vector<std::string>& GetColumnFamilyNames() {
   static std::vector<std::string> column_family_names = {
-      ROCKSDB_NAMESPACE::kDefaultColumnFamilyName, "priority_0", "priority_1", "priority_2", "priority_3", "priority_4", "priority_5"};
+      ROCKSDB_NAMESPACE::kDefaultColumnFamilyName, "priority_1", "priority_2", "priority_3", "priority_4", "priority_5"};
   return column_family_names;
 }
 
@@ -347,7 +349,7 @@ void writeToCsv(std::string csv_op, std::string csv_key, std::string csv_val, st
 
 
 // Parse the buffer and convert it to rocksdb understandable functions and send to RocksDB! 
-void sendToRocksDB(std::string rdb_in) {
+string sendToRocksDB(std::string rdb_in) {
 
     // Using wordexp_t to strip at spaces (amongst other things that may be used if we do ldb in the future)
     wordexp_t p;
@@ -372,33 +374,26 @@ void sendToRocksDB(std::string rdb_in) {
             csv_client = w[3];
         }
 
-        if (!s.ok())
-            // ;
+        if (s.ok())
+            return "OK";
             // std::cout << "Inserted key-value pair: " << w[1] << " " << w[2] << std::endl;
-        // else
+        else {
             std::cout << "Error in inserting key and value " << w[1] << " " << w[2] << " : " << s.ToString() << std::endl;
+            return "ERR";   
+        }
 
-        std::string csv_operation = w[0];
-        std::string csv_key = w[1];
-        std::string csv_value = w[2];
-
-        // writeToCsv(csv_operation, csv_key, csv_value, csv_client);
     }
     else if (strcmp(w[0], "delete") == 0) {
         Status del = db_primary->SingleDelete(rocksdb::WriteOptions(), w[1]);
 
         if (del.ok())
-            ;
+            return "OK";
             // std::cout << "Deleted key " << w[1] << std::endl;
-        else
+        else {
             std::cout << "Error in deleting key " << w[1] << std::endl;
+            return "ERR";
+        }
 
-        std::string csv_operation = w[0];
-        std::string csv_key = w[1];
-        std::string csv_value = "";
-        std::string csv_client = w[4];
-
-        // writeToCsv(csv_operation, csv_key, csv_value, csv_client);
     }
     else {
         std::cout << "Input error, ignoring input" << std::endl;
