@@ -60,6 +60,7 @@ using ROCKSDB_NAMESPACE::WriteOptions;
 
 // DB related variables
 const std::string hdfsEnv = "hdfs://172.17.0.3:9000/";
+const std::string del_hdfsEnv = "hdfs://172.17.0.3:9000/";
 const std::string kDBPrimaryPath = "primary";
 
 DB* db_primary = nullptr; 
@@ -467,8 +468,8 @@ void CreateDB() {
     DB* db = nullptr;
     
     // Open the DB
-    std::unique_ptr<rocksdb::Env> hdfs;
-    Status s = rocksdb::NewHdfsEnv(hdfsEnv, &hdfs);
+    std::unique_ptr<rocksdb::Env> del_hdfs;
+    Status s = rocksdb::NewHdfsEnv(del_hdfsEnv, &del_hdfs);
     
     if (!s.ok()) 
         fprintf(stderr, "[process %ld] Failed to open HDFS env: %s\n", my_pid, s.ToString().c_str());
@@ -478,7 +479,7 @@ void CreateDB() {
     assert(s.ok());
 
     Options options;
-    options.env = hdfs.get();
+    options.env = del_hdfs.get();
     options.create_if_missing = true;
     s = DB::Open(options, kDBPrimaryPath, &db);
 
