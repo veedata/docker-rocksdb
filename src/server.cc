@@ -523,7 +523,7 @@ int main()
 {
 
     // Init steps
-    CreateDB();
+    // CreateDB();
     openPrimaryDB();
     StartServer();
 
