@@ -183,6 +183,15 @@ std::string read_message(int sockfd) {
     return std::string(buffer, message_size);
 }
 
+void write_message(int sockfd, const std::string & message)
+{
+
+    uint32_t message_size = htonl(message.size()); // Convert the size of the message from host byte order to network byte order
+    send(sockfd, &message_size, sizeof(message_size), 0); // Send the size of the message
+    send(sockfd, message.data(), message.size(), 0);
+}
+
+
 int CheckConnections() {
             
     //add child sockets to set 
@@ -258,8 +267,7 @@ int CheckConnections() {
                 send_buf = sendToRocksDB(out_buf);
                 //set the string terminating NULL byte on the end of the data read 
                 // buffer[valread] = '\0';
-                send(sd, send_buf ,strlen(send_buf), 0);  
-
+                write_message(sd, send_buf);
                 //Close the socket and mark as 0 in list for reuse 
                 // close( sd );  
                 // client_socket[i] = 0;    
