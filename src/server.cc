@@ -368,7 +368,7 @@ void secondary_instance_sigint_handler(int signal) {
 // 0 is lowest priority and 5 is highest priority 
 const std::vector<std::string>& GetColumnFamilyNames() {
   static std::vector<std::string> column_family_names = {
-      ROCKSDB_NAMESPACE::kDefaultColumnFamilyName, "priority_0", "priority_1", "priority_2", "priority_3", "priority_4", "priority_5"};
+      ROCKSDB_NAMESPACE::kDefaultColumnFamilyName, "priority_1", "priority_2", "priority_3", "priority_4", "priority_5"};
   return column_family_names;
 }
 
