@@ -425,7 +425,7 @@ void openSecondaryDB() {
     }
 }
 
-void sendToRocksDB(std::string rdb_in) {
+std::string sendToRocksDB(std::string rdb_in) {
 
     // Need to test code without this - It is basically for checking for user interrupts from what I understand
     // It additionally also makes sure that there is concurrency in code (memory_order_relaxed). So, usefulness is unknown
@@ -497,7 +497,8 @@ void sendToRocksDB(std::string rdb_in) {
 		}
 
 		fprintf(stdout, "Observed %i keys\n", count); 
-        return count.ToString();
+        // return count.ToString();
+        return std::to_string(count);
     }
     else if ((strcmp(w[0], "put") == 0) || (strcmp(w[0], "update") == 0) || (strcmp(w[0], "delete") == 0)) {
         std::string send_pdb = sendToPrimaryDB(rdb_in);
