@@ -318,7 +318,7 @@ int connectToPrimaryDB() {
     primarydb_serv_addr.sin_port = htons(PRIMARYDB_PORT);
 
     // Convert IPv4 and IPv6 addresses from text to binary form
-    if (inet_pton(AF_INET, "172.17.0.9", &primarydb_serv_addr.sin_addr) <= 0) {
+    if (inet_pton(AF_INET, "10.99.234.218", &primarydb_serv_addr.sin_addr) <= 0) {
         printf("Invalid address/ Address not supported\n"); 
         return -1;
     }
