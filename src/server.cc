@@ -247,6 +247,7 @@ int CheckConnections() {
 
             std::memset(&(buffer[0]), 0, 1024);
             std::string out_buf = read_message(sd);
+            printf("Out message: %s\n", out_buf.c_str());
             std::string send_buf = "";
             
             // Check if it was for closing , and also read the incoming message 
@@ -372,6 +373,7 @@ std::string sendToRocksDB(std::string rdb_in) {
     if ((strcmp(w[0], "put") == 0) || (strcmp(w[0], "update") == 0)) {
         Status s;
         std::string csv_client = "";
+        printf("In STRDB\n");
 
         if (p.we_wordc >= 4) {
             s = db_primary->Put(WriteOptions(), handles[std::atoi(w[3])], w[1], w[2]);
