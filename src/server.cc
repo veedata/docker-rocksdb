@@ -49,10 +49,10 @@ int StartServer();
 int CheckConnections();
 int StopServer();
 int connectToPrimaryDB();
-void sendToPrimaryDB(std::string rdb_in);
+std::string sendToPrimaryDB(std::string rdb_in);
 void disconnectPrimaryDB();
 void OpenDB();
-void sendToRocksDB(std::string rdb_in);
+std::string sendToRocksDB(std::string rdb_in);
 void CloseDB();
 void CreateDB();
 std::string getSecondaryDBAddr();
@@ -67,7 +67,7 @@ using ROCKSDB_NAMESPACE::Status;
 using ROCKSDB_NAMESPACE::WriteOptions;
 
 
-const std::string hdfsEnv = "hdfs://192.168.49.1:9000/";
+const std::string hdfsEnv = "hdfs://172.17.0.3:9000/";
 const std::string kDBPrimaryPath = "primary";
 const std::string kDBSecondaryPath = getSecondaryDBAddr();
 
@@ -194,6 +194,9 @@ void write_message(int sockfd, const std::string & message)
     send(sockfd, message.data(), message.size(), 0);
 }
 
+
+
+
 int CheckConnections() {
 
     //add child sockets to set 
@@ -256,6 +259,8 @@ int CheckConnections() {
             // if ((valread = read(sd, buffer, sizeof(buffer)-1)) == 0) {
             std::memset(&(buffer[0]), 0, 1024);
             std::string out_buf = read_message(sd);
+            std::string send_buf = "";
+
             if (out_buf == "disco") {
 
                 //Somebody disconnected , get his details and print 
@@ -270,9 +275,11 @@ int CheckConnections() {
             else {
                 // printf("\nReceived from client: %s\n", buffer);
                 // std::cout << "\nReceived from client: " << out_buf << std::endl;
-                sendToRocksDB(out_buf);
+                send_buf = sendToRocksDB(out_buf);
+                write_message(sd, send_buf);
                 //set the string terminating NULL byte on the end of the data read 
                 // buffer = '\0';
+
                 // send(sd , buffer , strlen(buffer) , 0 );  
                 
                 //Close the socket and mark as 0 in list for reuse
@@ -311,7 +318,7 @@ int connectToPrimaryDB() {
     primarydb_serv_addr.sin_port = htons(PRIMARYDB_PORT);
 
     // Convert IPv4 and IPv6 addresses from text to binary form
-    if (inet_pton(AF_INET, "10.98.7.171", &primarydb_serv_addr.sin_addr) <= 0) {
+    if (inet_pton(AF_INET, "172.17.0.9", &primarydb_serv_addr.sin_addr) <= 0) {
         printf("Invalid address/ Address not supported\n"); 
         return -1;
     }
@@ -327,9 +334,12 @@ int connectToPrimaryDB() {
 }
 
 
-void sendToPrimaryDB(std::string rdb_in) {
+std::string sendToPrimaryDB(std::string rdb_in) {
     // std::cout << "Sending to PrimaryDB: " << rdb_in << std::endl;
     write_message(primarydb_sock, rdb_in);
+    std::string out_buf = read_message(primarydb_sock);
+
+    return out_buf;
 }
 
 
@@ -451,15 +461,16 @@ void sendToRocksDB(std::string rdb_in) {
         std::string value;
         Status s2 = db_secondary->Get(rocksdb::ReadOptions(), w[1], &value);
         
-        std::string csv_value = "";
+        // std::string csv_value = "";
 
         if (s2.ok()) {
             // std::cout << value << std::endl;
-            ;
-            std::string csv_value = value;
+            // std::string csv_value = value;
+            return value;
         }
         else {
             std::cout << "Error in locating value for key " << w[1] << s2.ToString().c_str() << std::endl;
+            return "ERR";
         }
         
         std::string csv_operation = w[0];
@@ -468,6 +479,7 @@ void sendToRocksDB(std::string rdb_in) {
 
         // writeToCsv(csv_operation, csv_key, csv_value, csv_client);
     }
+    // Does not work fully
     else if (strcmp(w[0], "scan") == 0) {
         rocksdb::Iterator *it = db_secondary->NewIterator(ReadOptions());
 		int count = 0;
@@ -485,9 +497,11 @@ void sendToRocksDB(std::string rdb_in) {
 		}
 
 		fprintf(stdout, "Observed %i keys\n", count); 
+        return count.ToString();
     }
     else if ((strcmp(w[0], "put") == 0) || (strcmp(w[0], "update") == 0) || (strcmp(w[0], "delete") == 0)) {
-        sendToPrimaryDB(rdb_in);
+        std::string send_pdb = sendToPrimaryDB(rdb_in);
+        return send_pdb;
     }
     else {
         std::cout << "Input error, ignoring input" << std::endl;
