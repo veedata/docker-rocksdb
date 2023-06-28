@@ -140,10 +140,10 @@ uint32_t read_bytes_internal(int sock_in)
     size_t remaining = sizeof(message_size);
     int opt=1;
 
-    if (setsockopt(sock_in, IPPROTO_TCP, TCP_QUICKACK, (char *)&opt, sizeof(opt)) < 0 )  {  
-        perror("setsockopt TCP_QUICKACK");
-        // exit(EXIT_FAILURE);
-    }
+    // if (setsockopt(sock_in, IPPROTO_TCP, TCP_QUICKACK, (char *)&opt, sizeof(opt)) < 0 )  {  
+    //     perror("setsockopt TCP_QUICKACK");
+    //     // exit(EXIT_FAILURE);
+    // }
 
     // Read the message size from the socket
     while (remaining > 0) {
