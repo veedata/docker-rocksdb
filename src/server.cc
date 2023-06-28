@@ -42,7 +42,7 @@ int StartServer();
 int CheckConnections();
 int StopServer();
 void OpenDB();
-string sendToRocksDB(std::string rdb_in);
+std::string sendToRocksDB(std::string rdb_in);
 void CloseDB();
 void CreateDB();
 
@@ -349,7 +349,7 @@ void writeToCsv(std::string csv_op, std::string csv_key, std::string csv_val, st
 
 
 // Parse the buffer and convert it to rocksdb understandable functions and send to RocksDB! 
-string sendToRocksDB(std::string rdb_in) {
+std::string sendToRocksDB(std::string rdb_in) {
 
     // Using wordexp_t to strip at spaces (amongst other things that may be used if we do ldb in the future)
     wordexp_t p;
