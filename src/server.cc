@@ -377,12 +377,14 @@ std::string sendToRocksDB(std::string rdb_in) {
         printf("In STRDB\n");
 
         if (p.we_wordc >= 4) {
+            printf("Inserting, %s, %s, %s\n", w[1], w[2], handles[std::atoi(w[3])]);
             s = db_primary->Put(WriteOptions(), handles[std::atoi(w[3])], w[1], w[2]);
-            csv_client = w[4];
+            // csv_client = w[4];
         }
         else {
+            printf("Inserting, %s, %s\n", w[1], w[2]);
             s = db_primary->Put(WriteOptions(), w[1], w[2]);
-            csv_client = w[3];
+            // csv_client = w[3];
         }
 
         if (s.ok())
