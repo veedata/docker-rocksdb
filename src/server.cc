@@ -481,7 +481,7 @@ void CreateDB() {
     s = DB::Open(options, kDBPrimaryPath, &db);
 
     if (!s.ok())
-        fprintf(stderr, "[process %ld] Failed to open DB: %s\n", my_pid, s.ToString().c_str());
+        fprintf(stderr, "[process %ld] Failed to create DB: %s\n", my_pid, s.ToString().c_str());
     else 
         printf("DB Open at: %s\n", kDBPrimaryPath.c_str());
     assert(s.ok());
