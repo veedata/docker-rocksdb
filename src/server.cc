@@ -304,7 +304,6 @@ int StopServer() {
 
 int connectToPrimaryDB() {
 
-    struct sockaddr_in primarydb_address;
     struct sockaddr_in primarydb_serv_addr;
 
     if ((primarydb_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -318,7 +317,7 @@ int connectToPrimaryDB() {
     primarydb_serv_addr.sin_port = htons(PRIMARYDB_PORT);
 
     // Convert IPv4 and IPv6 addresses from text to binary form
-    if (inet_pton(AF_INET, "10.99.234.218", &primarydb_serv_addr.sin_addr) <= 0) {
+    if (inet_pton(AF_INET, "10.111.207.126", &primarydb_serv_addr.sin_addr) <= 0) {
         printf("Invalid address/ Address not supported\n"); 
         return -1;
     }
