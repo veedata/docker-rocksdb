@@ -80,7 +80,7 @@ fd_set readfds;
 
 int StartServer() {
     int opt = 1;
-    // int qack = 1;
+    int qack = 1;
 
     //initialise all client_socket[] to 0 so not checked 
     for (i = 0; i < max_clients; i++) {
