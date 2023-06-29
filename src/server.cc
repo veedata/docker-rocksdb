@@ -470,11 +470,12 @@ std::string sendToRocksDB(std::string rdb_in) {
         if (s2.ok()) {
             // std::cout << value << std::endl;
             // std::string csv_value = value;
-            return value;
+            // return value;
+            return "OK";
         }
         else {
-            std::cout << "Error in locating value for key " << w[1] << s2.ToString().c_str() << std::endl;
-            return "ERR";
+            std::cout << "Error in locating value for key " << w[1] << " " << s2.ToString().c_str() << std::endl;
+            return "OK";
         }
         
         std::string csv_operation = w[0];
