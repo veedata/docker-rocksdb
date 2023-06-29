@@ -463,7 +463,7 @@ std::string sendToRocksDB(std::string rdb_in) {
         std::string value;
         printf("Done catching up, trying get\n");
         Status s2 = db_secondary->Get(rocksdb::ReadOptions(), w[1], &value);
-        printf("value is %s\n", value)
+        printf("value is %s\n", value);
         
         // std::string csv_value = "";
 
