@@ -418,8 +418,8 @@ std::string sendToRocksDB(std::string rdb_in) {
             // return value;
         }
         else {
-            std::cout << "Error in locating value for key " << w[1] << s2.ToString().c_str() << std::endl;
-            return "ERR";
+            std::cout << "Error in locating value for key " << w[1] << " " << s2.ToString().c_str() << std::endl;
+            return "OK";
         }
     }
 
