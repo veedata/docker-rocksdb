@@ -374,7 +374,7 @@ std::string sendToRocksDB(std::string rdb_in) {
     if ((strcmp(w[0], "put") == 0) || (strcmp(w[0], "update") == 0)) {
         Status s;
         std::string csv_client = "";
-        printf("In STRDB\n");
+        // printf("In STRDB\n");
 
         if (p.we_wordc >= 4) {
             // printf("Inserting, %s, %s, %s\n", w[1], w[2], handles[std::atoi(w[3])]);
