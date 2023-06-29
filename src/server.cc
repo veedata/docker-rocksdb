@@ -100,10 +100,10 @@ int StartServer() {
         exit(EXIT_FAILURE);
     }
     
-    // if (setsockopt(master_socket, IPPROTO_TCP, TCP_QUICKACK, (char *)&qack, sizeof(qack)) < 0 )  {  
-    //     perror("setsockopt TCP_QUICKACK master");
-    //     // exit(EXIT_FAILURE);
-    // }
+    if (setsockopt(master_socket, IPPROTO_TCP, TCP_NODELAY, (char *)&qack, sizeof(qack)) < 0 )  {  
+        perror("setsockopt TCP_QUICKACK master");
+        // exit(EXIT_FAILURE);
+    }
 
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
