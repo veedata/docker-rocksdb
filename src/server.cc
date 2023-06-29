@@ -408,6 +408,20 @@ std::string sendToRocksDB(std::string rdb_in) {
         }
 
     }
+    else if (strcmp(w[0], "get") == 0) {
+
+        std::string value;
+        Status s2 = db_primary->Get(rocksdb::ReadOptions(), w[1], &value);
+        
+        if (s2.ok()) {
+            return value;
+        }
+        else {
+            std::cout << "Error in locating value for key " << w[1] << s2.ToString().c_str() << std::endl;
+            return "ERR";
+        }
+    }
+
     else {
         std::cout << "Input error, ignoring input" << std::endl;
     }
