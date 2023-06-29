@@ -521,12 +521,12 @@ void CloseSecondaryDB(){
 
 std::string getSecondaryDBAddr() {
 
-    std::string curr_path = "secondary/";
+    std::string curr_path = "secondary";
 
-    char hostname[HOST_NAME_MAX] = {0};
-    gethostname(hostname, HOST_NAME_MAX);
+    // char hostname[HOST_NAME_MAX] = {0};
+    // gethostname(hostname, HOST_NAME_MAX);
 
-    curr_path += hostname;
+    // curr_path += hostname;
 
     return curr_path;
 }
@@ -559,7 +559,7 @@ int main() {
 
     // Init steps
     // connectToPrimaryDB();
-    CreateDB();
+    // CreateDB();
     connectToPrimaryDB();
     openSecondaryDB();
     StartServer();
