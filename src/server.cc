@@ -559,7 +559,7 @@ int main() {
 
     // Init steps
     // connectToPrimaryDB();
-    CreateDB();
+    // CreateDB();
     connectToPrimaryDB();
     openSecondaryDB();
     StartServer();
