@@ -248,7 +248,7 @@ int CheckConnections() {
 
             std::memset(&(buffer[0]), 0, 1024);
             std::string out_buf = read_message(sd);
-            printf("Out message: %s\n", out_buf.c_str());
+            // printf("Out message: %s\n", out_buf.c_str());
             std::string send_buf = "";
             
             // Check if it was for closing , and also read the incoming message 
@@ -377,12 +377,12 @@ std::string sendToRocksDB(std::string rdb_in) {
         printf("In STRDB\n");
 
         if (p.we_wordc >= 4) {
-            printf("Inserting, %s, %s, %s\n", w[1], w[2], handles[std::atoi(w[3])]);
+            // printf("Inserting, %s, %s, %s\n", w[1], w[2], handles[std::atoi(w[3])]);
             s = db_primary->Put(WriteOptions(), handles[std::atoi(w[3])], w[1], w[2]);
             // csv_client = w[4];
         }
         else {
-            printf("Inserting, %s, %s\n", w[1], w[2]);
+            // printf("Inserting, %s, %s\n", w[1], w[2]);
             s = db_primary->Put(WriteOptions(), w[1], w[2]);
             // csv_client = w[3];
         }
