@@ -445,11 +445,13 @@ std::string sendToRocksDB(std::string rdb_in) {
     // arrayOfArgs --> w
     // currently implemented: get, scan
     if (strcmp(w[0], "get") == 0) {
-        
+
+        printf("Inserting, %s, %s\n", w[1], w[2]);
         // To be replaced by a way more complex call in the future.
         // Note: Replacement will probably come in the readData() function
         // primaryCatchUp();
         if (p.we_wordc >= 3) {
+            printf("Trying catchup\n");
             // Status catch_up = db_secondary->TryCatchUpWithPrimary(secondary_handles[std::stoi(w[2])]);
             Status catch_up = db_secondary->TryCatchUpWithPrimary();
             if (!catch_up.ok()) {
@@ -459,7 +461,9 @@ std::string sendToRocksDB(std::string rdb_in) {
         } 
 
         std::string value;
+        printf("Done catching up, trying get\n");
         Status s2 = db_secondary->Get(rocksdb::ReadOptions(), w[1], &value);
+        printf("value is %s\n", value)
         
         // std::string csv_value = "";
 
