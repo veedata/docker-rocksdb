@@ -475,7 +475,7 @@ std::string sendToRocksDB(std::string rdb_in) {
         
         std::string csv_operation = w[0];
         std::string csv_key = w[1];
-        std::string csv_client = w[3];
+        // std::string csv_client = w[3];
 
         // writeToCsv(csv_operation, csv_key, csv_value, csv_client);
     }
@@ -490,7 +490,7 @@ std::string sendToRocksDB(std::string rdb_in) {
 
             std::string csv_operation = w[0];
             std::string csv_key = it->key().ToString();
-            std::string csv_client = w[3];
+            // std::string csv_client = w[3];
             std::string csv_value = it->value().ToString();
 
             // writeToCsv(csv_operation, csv_key, csv_value, csv_client);
