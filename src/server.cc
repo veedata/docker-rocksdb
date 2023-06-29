@@ -412,6 +412,11 @@ std::string sendToRocksDB(std::string rdb_in) {
 
         std::string value;
         Status s2 = db_primary->Get(rocksdb::ReadOptions(), w[1], &value);
+
+        for (int asjksj = 0; asjksj < 10; asjksj++)
+        {
+            ;
+        }
         
         if (s2.ok()) {
             return "OK";
